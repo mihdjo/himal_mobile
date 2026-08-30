@@ -13,6 +13,10 @@ import com.himal.dto.UpdateEkspedicijaRequest;
 import com.himal.model.TezinaEkspedicije;
 import com.himal.service.SacuvanaEkspedicijaService;
 import java.math.BigDecimal;
+import com.himal.dto.AddEkspedicijaOpremaRequest;
+import com.himal.dto.EkspedicijaOpremaResponse;
+import com.himal.service.EkspedicijaOpremaService;
+import com.himal.dto.UpdateEkspedicijaOpremaRequest;
 
 /*
     @author: mihdjo
@@ -24,13 +28,18 @@ public class EkspedicijaController {
 
     private final EkspedicijaService ekspedicijaService;
     private final SacuvanaEkspedicijaService sacuvanaEkspedicijaService;
+    private final EkspedicijaOpremaService ekspedicijaOpremaService;
 
     public EkspedicijaController(
             EkspedicijaService ekspedicijaService,
-            SacuvanaEkspedicijaService sacuvanaEkspedicijaService
+            SacuvanaEkspedicijaService sacuvanaEkspedicijaService,
+            EkspedicijaOpremaService ekspedicijaOpremaService
     ) {
         this.ekspedicijaService = ekspedicijaService;
-        this.sacuvanaEkspedicijaService = sacuvanaEkspedicijaService;
+        this.sacuvanaEkspedicijaService
+                = sacuvanaEkspedicijaService;
+        this.ekspedicijaOpremaService
+                = ekspedicijaOpremaService;
     }
 
     @PostMapping
@@ -140,6 +149,71 @@ public class EkspedicijaController {
         sacuvanaEkspedicijaService.remove(
                 authentication.getName(),
                 id
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/equipment")
+    public ResponseEntity<List<EkspedicijaOpremaResponse>>
+            getEquipment(
+                    @PathVariable Long id
+            ) {
+
+        return ResponseEntity.ok(
+                ekspedicijaOpremaService.getByExpedition(id)
+        );
+    }
+
+    @PostMapping("/{id}/equipment")
+    public ResponseEntity<EkspedicijaOpremaResponse> addEquipment(
+            @PathVariable Long id,
+            Authentication authentication,
+            @Valid @RequestBody AddEkspedicijaOpremaRequest request
+    ) {
+
+        EkspedicijaOpremaResponse response
+                = ekspedicijaOpremaService.add(
+                        id,
+                        authentication.getName(),
+                        request
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @PutMapping("/{id}/equipment/{equipmentId}")
+    public ResponseEntity<EkspedicijaOpremaResponse> updateEquipment(
+            @PathVariable Long id,
+            @PathVariable Long equipmentId,
+            Authentication authentication,
+            @Valid @RequestBody UpdateEkspedicijaOpremaRequest request
+    ) {
+
+        EkspedicijaOpremaResponse response
+                = ekspedicijaOpremaService.update(
+                        id,
+                        equipmentId,
+                        authentication.getName(),
+                        request
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/equipment/{equipmentId}")
+    public ResponseEntity<Void> removeEquipment(
+            @PathVariable Long id,
+            @PathVariable Long equipmentId,
+            Authentication authentication
+    ) {
+
+        ekspedicijaOpremaService.remove(
+                id,
+                equipmentId,
+                authentication.getName()
         );
 
         return ResponseEntity.noContent().build();
