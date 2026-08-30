@@ -1,2 +1,2 @@
-# himal_mobile
-HIMAL is an android app for exploring mountaineering trip options.
+HIMAL - a pocket mountain guide
+HIMAL is a small android app for exploring mountaineering trip options.
