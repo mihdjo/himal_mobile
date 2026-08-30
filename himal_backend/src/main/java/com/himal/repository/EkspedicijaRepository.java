@@ -12,5 +12,7 @@ import java.util.List;
 public interface EkspedicijaRepository
         extends JpaRepository<Ekspedicija, Long> {
 
-    List<Ekspedicija> findByKorisnik_IdKorisnika(Long idKorisnika);
+    List<Ekspedicija> findByKorisnik_IdKorisnikaOrderByDatumKreiranjaDesc(
+            Long idKorisnika
+    );
 }

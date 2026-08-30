@@ -7,6 +7,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.himal.dto.UpdateKorisnikRequest;
 import jakarta.validation.Valid;
+import com.himal.dto.EkspedicijaResponse;
+import com.himal.service.EkspedicijaService;
+
+import java.util.List;
 
 /*
     @author: mihdjo
@@ -17,9 +21,14 @@ import jakarta.validation.Valid;
 public class KorisnikController {
 
     private final KorisnikService korisnikService;
+    private final EkspedicijaService ekspedicijaService;
 
-    public KorisnikController(KorisnikService korisnikService) {
+    public KorisnikController(
+            KorisnikService korisnikService,
+            EkspedicijaService ekspedicijaService
+    ) {
         this.korisnikService = korisnikService;
+        this.ekspedicijaService = ekspedicijaService;
     }
 
     @GetMapping("/me")
@@ -45,6 +54,19 @@ public class KorisnikController {
                 = korisnikService.updateCurrentUser(
                         authentication.getName(),
                         request
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/expeditions")
+    public ResponseEntity<List<EkspedicijaResponse>> getMyExpeditions(
+            Authentication authentication
+    ) {
+
+        List<EkspedicijaResponse> response
+                = ekspedicijaService.getMyExpeditions(
+                        authentication.getName()
                 );
 
         return ResponseEntity.ok(response);

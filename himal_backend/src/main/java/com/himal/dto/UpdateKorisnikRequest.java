@@ -8,6 +8,10 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
+/*
+    @author: mihdjo
+*/
+
 public class UpdateKorisnikRequest {
 
     @NotBlank
