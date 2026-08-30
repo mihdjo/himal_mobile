@@ -15,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import com.himal.dto.UpdateEkspedicijaRequest;
+import com.himal.model.TezinaEkspedicije;
+import java.math.BigDecimal;
 
 /*
     @author: mihdjo
@@ -123,14 +125,48 @@ public class EkspedicijaService {
     }
 
     @Transactional(readOnly = true)
-    public List<EkspedicijaResponse> getAll() {
+    public List<EkspedicijaResponse> getAll(
+            String search,
+            String location,
+            TezinaEkspedicije difficulty,
+            Long typeId,
+            Integer maxDuration,
+            BigDecimal maxDistance
+    ) {
+
+        if (maxDuration != null && maxDuration <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Maksimalno trajanje mora biti veće od 0."
+            );
+        }
+
+        if (maxDistance != null
+                && maxDistance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Maksimalna dužina mora biti veća od 0."
+            );
+        }
+
+        String normalizedSearch
+                = search == null || search.isBlank()
+                ? null
+                : search.trim();
+
+        String normalizedLocation
+                = location == null || location.isBlank()
+                ? null
+                : location.trim();
 
         return ekspedicijaRepository
-                .findAll(
-                        Sort.by(
-                                Sort.Direction.DESC,
-                                "datumKreiranja"
-                        )
+                .searchAndFilter(
+                        normalizedSearch,
+                        normalizedLocation,
+                        difficulty,
+                        typeId,
+                        maxDuration,
+                        maxDistance
                 )
                 .stream()
                 .map(this::toResponse)

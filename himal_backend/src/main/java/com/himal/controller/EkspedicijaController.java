@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.himal.dto.UpdateEkspedicijaRequest;
+import com.himal.model.TezinaEkspedicije;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/expeditions")
@@ -52,10 +54,24 @@ public class EkspedicijaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EkspedicijaResponse>> getAll() {
+    public ResponseEntity<List<EkspedicijaResponse>> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) TezinaEkspedicije difficulty,
+            @RequestParam(required = false) Long typeId,
+            @RequestParam(required = false) Integer maxDuration,
+            @RequestParam(required = false) BigDecimal maxDistance
+    ) {
 
         List<EkspedicijaResponse> response
-                = ekspedicijaService.getAll();
+                = ekspedicijaService.getAll(
+                        search,
+                        location,
+                        difficulty,
+                        typeId,
+                        maxDuration,
+                        maxDistance
+                );
 
         return ResponseEntity.ok(response);
     }
