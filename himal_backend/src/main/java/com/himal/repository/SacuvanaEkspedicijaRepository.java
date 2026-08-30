@@ -13,7 +13,8 @@ import java.util.List;
 public interface SacuvanaEkspedicijaRepository
         extends JpaRepository<SacuvanaEkspedicija, SacuvanaEkspedicijaId> {
 
-    List<SacuvanaEkspedicija> findByKorisnik_IdKorisnika(
-            Long idKorisnika
-    );
+    List<SacuvanaEkspedicija>
+            findByKorisnik_IdKorisnikaOrderByDatumCuvanjaDesc(
+                    Long idKorisnika
+            );
 }

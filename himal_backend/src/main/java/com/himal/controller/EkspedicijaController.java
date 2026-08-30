@@ -11,18 +11,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.himal.dto.UpdateEkspedicijaRequest;
 import com.himal.model.TezinaEkspedicije;
+import com.himal.service.SacuvanaEkspedicijaService;
 import java.math.BigDecimal;
+
+/*
+    @author: mihdjo
+*/
 
 @RestController
 @RequestMapping("/api/expeditions")
 public class EkspedicijaController {
 
     private final EkspedicijaService ekspedicijaService;
+    private final SacuvanaEkspedicijaService sacuvanaEkspedicijaService;
 
     public EkspedicijaController(
-            EkspedicijaService ekspedicijaService
+            EkspedicijaService ekspedicijaService,
+            SacuvanaEkspedicijaService sacuvanaEkspedicijaService
     ) {
         this.ekspedicijaService = ekspedicijaService;
+        this.sacuvanaEkspedicijaService = sacuvanaEkspedicijaService;
     }
 
     @PostMapping
@@ -102,6 +110,36 @@ public class EkspedicijaController {
         ekspedicijaService.delete(
                 id,
                 authentication.getName()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/save")
+    public ResponseEntity<Void> save(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        sacuvanaEkspedicijaService.save(
+                authentication.getName(),
+                id
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .build();
+    }
+
+    @DeleteMapping("/{id}/save")
+    public ResponseEntity<Void> removeSaved(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        sacuvanaEkspedicijaService.remove(
+                authentication.getName(),
+                id
         );
 
         return ResponseEntity.noContent().build();

@@ -91,7 +91,7 @@ public class EkspedicijaService {
         return toResponse(ucitana);
     }
 
-    private EkspedicijaResponse toResponse(Ekspedicija ekspedicija) {
+    public EkspedicijaResponse toResponse(Ekspedicija ekspedicija) {
 
         return new EkspedicijaResponse(
                 ekspedicija.getIdEkspedicije(),

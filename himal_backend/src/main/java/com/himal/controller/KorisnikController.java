@@ -9,6 +9,7 @@ import com.himal.dto.UpdateKorisnikRequest;
 import jakarta.validation.Valid;
 import com.himal.dto.EkspedicijaResponse;
 import com.himal.service.EkspedicijaService;
+import com.himal.service.SacuvanaEkspedicijaService;
 
 import java.util.List;
 
@@ -22,13 +23,17 @@ public class KorisnikController {
 
     private final KorisnikService korisnikService;
     private final EkspedicijaService ekspedicijaService;
+    private final SacuvanaEkspedicijaService sacuvanaEkspedicijaService;
 
     public KorisnikController(
             KorisnikService korisnikService,
-            EkspedicijaService ekspedicijaService
+            EkspedicijaService ekspedicijaService,
+            SacuvanaEkspedicijaService sacuvanaEkspedicijaService
     ) {
         this.korisnikService = korisnikService;
         this.ekspedicijaService = ekspedicijaService;
+        this.sacuvanaEkspedicijaService
+                = sacuvanaEkspedicijaService;
     }
 
     @GetMapping("/me")
@@ -66,6 +71,20 @@ public class KorisnikController {
 
         List<EkspedicijaResponse> response
                 = ekspedicijaService.getMyExpeditions(
+                        authentication.getName()
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/saved-expeditions")
+    public ResponseEntity<List<EkspedicijaResponse>>
+            getSavedExpeditions(
+                    Authentication authentication
+            ) {
+
+        List<EkspedicijaResponse> response
+                = sacuvanaEkspedicijaService.getSaved(
                         authentication.getName()
                 );
 
