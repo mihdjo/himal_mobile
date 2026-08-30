@@ -5,6 +5,8 @@ import com.himal.service.KorisnikService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.himal.dto.UpdateKorisnikRequest;
+import jakarta.validation.Valid;
 
 /*
     @author: mihdjo
@@ -25,9 +27,24 @@ public class KorisnikController {
             Authentication authentication
     ) {
 
-        KorisnikResponse response =
-                korisnikService.getCurrentUser(
+        KorisnikResponse response
+                = korisnikService.getCurrentUser(
                         authentication.getName()
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<KorisnikResponse> updateCurrentUser(
+            Authentication authentication,
+            @Valid @RequestBody UpdateKorisnikRequest request
+    ) {
+
+        KorisnikResponse response
+                = korisnikService.updateCurrentUser(
+                        authentication.getName(),
+                        request
                 );
 
         return ResponseEntity.ok(response);
