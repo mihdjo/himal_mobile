@@ -13,5 +13,7 @@ import java.util.List;
 public interface MojPlanRepository
         extends JpaRepository<MojPlan, MojPlanId> {
 
-    List<MojPlan> findByKorisnik_IdKorisnika(Long idKorisnika);
+    List<MojPlan> findByKorisnik_IdKorisnikaOrderByDatumDodavanjaDesc(
+            Long idKorisnika
+    );
 }
