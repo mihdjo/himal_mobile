@@ -1,6 +1,8 @@
 package com.himal.config;
 
 import com.himal.security.JwtAuthenticationFilter;
+import com.himal.security.RestAccessDeniedHandler;
+import com.himal.security.RestAuthenticationEntryPoint;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -15,16 +17,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /*
     @author: mihdjo
 */
-
 @Configuration
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            RestAuthenticationEntryPoint authenticationEntryPoint,
+            RestAccessDeniedHandler accessDeniedHandler
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -34,36 +41,31 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+                .sessionManagement(session
+                        -> session.sessionCreationPolicy(
+                        SessionCreationPolicy.STATELESS
+                )
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .dispatcherTypeMatchers(
-                                DispatcherType.ERROR
-                        ).permitAll()
+                .dispatcherTypeMatchers(
+                        DispatcherType.ERROR
+                ).permitAll()
 
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/auth/register",
-                                "/api/auth/login"
-                        ).permitAll()
+                .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/auth/register",
+                        "/api/auth/login"
+                ).permitAll()
 
-                        .requestMatchers("/error").permitAll()
+                .requestMatchers("/error").permitAll()
 
-                        .anyRequest().authenticated()
+                .anyRequest().authenticated()
                 )
-
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(
-                                (request, response, authException) ->
-                                        response.setStatus(
-                                                HttpServletResponse.SC_UNAUTHORIZED
-                                        )
-                        )
+                .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler)
+                
                 )
 
                 .formLogin(form -> form.disable())
