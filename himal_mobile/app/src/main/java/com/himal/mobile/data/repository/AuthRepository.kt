@@ -5,6 +5,7 @@ import com.himal.mobile.data.local.SessionManager
 import com.himal.mobile.data.remote.HimalApiService
 import com.himal.mobile.data.remote.dto.ApiErrorResponse
 import com.himal.mobile.data.remote.dto.LoginRequest
+import kotlinx.coroutines.flow.first
 
 class AuthRepository(
     private val api: HimalApiService,
@@ -68,6 +69,10 @@ class AuthRepository(
                     ?: "Nije moguće povezati se sa serverom."
             )
         }
+    }
+
+    suspend fun getSavedToken(): String? {
+        return sessionManager.token.first()
     }
 
     suspend fun logout() {

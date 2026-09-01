@@ -29,6 +29,9 @@ class AuthViewModel(
     val uiState: StateFlow<AuthUiState> =
         _uiState.asStateFlow()
 
+    init {
+        restoreSession()
+    }
     fun onUsernameChange(username: String) {
 
         _uiState.value =
@@ -89,6 +92,7 @@ class AuthViewModel(
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,
+                            isCheckingSession = false,
                             isLoggedIn = true,
                             loggedInUsername =
                                 result.data.username,
@@ -108,6 +112,33 @@ class AuthViewModel(
                         )
                 }
             }
+        }
+    }
+
+    fun logout() {
+
+        viewModelScope.launch {
+
+            repository.logout()
+
+            _uiState.value =
+                AuthUiState(
+                    isCheckingSession = false
+                )
+        }
+    }
+
+    private fun restoreSession() {
+
+        viewModelScope.launch {
+
+            val token = repository.getSavedToken()
+
+            _uiState.value =
+                _uiState.value.copy(
+                    isCheckingSession = false,
+                    isLoggedIn = !token.isNullOrBlank()
+                )
         }
     }
 }
