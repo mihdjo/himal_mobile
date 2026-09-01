@@ -23,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.himal.mobile.data.remote.dto.EkspedicijaResponse
+import androidx.compose.foundation.clickable
 
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onExpeditionClick: (Long) -> Unit
 ) {
 
     val state by viewModel.uiState.collectAsState()
@@ -137,7 +139,12 @@ fun FeedScreen(
                     ) { expedition ->
 
                         ExpeditionCard(
-                            expedition = expedition
+                            expedition = expedition,
+                            onClick = {
+                                onExpeditionClick(
+                                    expedition.idEkspedicije
+                                )
+                            }
                         )
                     }
                 }
@@ -148,11 +155,16 @@ fun FeedScreen(
 
 @Composable
 private fun ExpeditionCard(
-    expedition: EkspedicijaResponse
+    expedition: EkspedicijaResponse,
+    onClick: () -> Unit
 ) {
 
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = onClick
+            )
     ) {
 
         Column(
