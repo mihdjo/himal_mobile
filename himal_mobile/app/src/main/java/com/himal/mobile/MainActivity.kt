@@ -13,6 +13,8 @@ import androidx.compose.runtime.setValue
 import com.himal.mobile.data.remote.RetrofitClient
 import com.himal.mobile.data.remote.dto.LoginRequest
 import com.himal.mobile.ui.theme.HimalTheme
+import com.himal.mobile.data.local.SessionManager
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
 
@@ -31,7 +33,11 @@ class MainActivity : ComponentActivity() {
 
                     try {
 
-                        val response =
+                        // 1. LOGIN
+                        val sessionManager =
+                            SessionManager(applicationContext)
+
+                        val loginResponse =
                             RetrofitClient.api.login(
                                 LoginRequest(
                                     username = "alex",
@@ -39,39 +45,115 @@ class MainActivity : ComponentActivity() {
                                 )
                             )
 
-                        if (response.isSuccessful) {
-
-                            val loginResponse =
-                                response.body()
-
-                            Log.d(
-                                "HIMAL_API",
-                                "LOGIN SUCCESS: " +
-                                        "status=${response.code()}, " +
-                                        "username=${loginResponse?.username}, " +
-                                        "tokenReceived=${!loginResponse?.token.isNullOrBlank()}"
-                            )
-
-                            message =
-                                "Login uspešan!\n" +
-                                        "Korisnik: ${loginResponse?.username}\n" +
-                                        "HTTP: ${response.code()}"
-
-                        } else {
+                        if (!loginResponse.isSuccessful) {
 
                             val errorBody =
-                                response.errorBody()?.string()
+                                loginResponse.errorBody()?.string()
 
                             Log.e(
                                 "HIMAL_API",
                                 "LOGIN ERROR: " +
-                                        "status=${response.code()}, " +
+                                        "status=${loginResponse.code()}, " +
                                         "body=$errorBody"
                             )
 
                             message =
                                 "Login neuspešan\n" +
-                                        "HTTP: ${response.code()}"
+                                        "HTTP: ${loginResponse.code()}"
+
+                            return@LaunchedEffect
+                        }
+
+                        val loginBody = loginResponse.body()
+
+                        if (loginBody == null) {
+
+                            Log.e(
+                                "HIMAL_API",
+                                "LOGIN ERROR: empty body"
+                            )
+
+                            message = "Login response je prazan."
+
+                            return@LaunchedEffect
+                        }
+
+                        sessionManager.saveToken(
+                            loginBody.token
+                        )
+
+                        Log.d(
+                            "HIMAL_DATASTORE",
+                            "JWT saved to DataStore"
+                        )
+
+                        val savedToken =
+                            sessionManager.token.first()
+
+                        Log.d(
+                            "HIMAL_DATASTORE",
+                            "JWT loaded: ${!savedToken.isNullOrBlank()}"
+                        )
+
+                        Log.d(
+                            "HIMAL_API",
+                            "LOGIN SUCCESS: " +
+                                    "username=${loginBody.username}, " +
+                                    "tokenReceived=${loginBody.token.isNotBlank()}"
+                        )
+
+                        // 2. PROTECTED FEED
+                        val feedResponse =
+                            RetrofitClient.api.getExpeditions(
+                                authorization =
+                                    "Bearer $savedToken"
+                            )
+
+                        if (feedResponse.isSuccessful) {
+
+                            val expeditions =
+                                feedResponse.body().orEmpty()
+
+                            Log.d(
+                                "HIMAL_API",
+                                "FEED SUCCESS: " +
+                                        "status=${feedResponse.code()}, " +
+                                        "count=${expeditions.size}"
+                            )
+
+                            expeditions.forEach { expedition ->
+
+                                Log.d(
+                                    "HIMAL_API",
+                                    "EXPEDITION: " +
+                                            "id=${expedition.idEkspedicije}, " +
+                                            "naziv=${expedition.naziv}, " +
+                                            "lokacija=${expedition.lokacija}, " +
+                                            "tezina=${expedition.tezina}"
+                                )
+                            }
+
+                            message =
+                                "HIMAL API radi!\n" +
+                                        "Login: ${loginBody.username}\n" +
+                                        "Ekspedicija: ${expeditions.size}\n" +
+                                        "Feed HTTP: ${feedResponse.code()}"
+
+                        } else {
+
+                            val errorBody =
+                                feedResponse.errorBody()?.string()
+
+                            Log.e(
+                                "HIMAL_API",
+                                "FEED ERROR: " +
+                                        "status=${feedResponse.code()}, " +
+                                        "body=$errorBody"
+                            )
+
+                            message =
+                                "Feed neuspešan\n" +
+                                        "HTTP: ${feedResponse.code()}"
                         }
 
                     } catch (e: Exception) {
