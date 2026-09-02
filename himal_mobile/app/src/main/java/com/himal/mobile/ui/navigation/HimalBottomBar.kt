@@ -30,6 +30,10 @@ fun HimalBottomBar(
                             destination == MainDestination.FEED
                         }
 
+                        currentRoute == "packing-list" -> {
+                            destination == MainDestination.PLAN
+                        }
+
                         else -> {
 
                             currentRoute == destination.route

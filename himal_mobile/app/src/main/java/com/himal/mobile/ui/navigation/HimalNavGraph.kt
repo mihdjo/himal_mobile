@@ -23,12 +23,14 @@ import com.himal.mobile.ui.plan.PlanScreen
 import com.himal.mobile.ui.profile.ProfileScreen
 import com.himal.mobile.ui.saved.SavedScreen
 import com.himal.mobile.ui.saved.SavedViewModel
+import com.himal.mobile.ui.plan.PlanViewModel
 
 @Composable
 fun HimalNavGraph(
     feedViewModel: FeedViewModel,
     detailsViewModel: ExpeditionDetailsViewModel,
     savedViewModel: SavedViewModel,
+    planViewModel: PlanViewModel,
     onLogout: () -> Unit
 ) {
 
@@ -119,7 +121,27 @@ fun HimalNavGraph(
                 route = MainDestination.PLAN.route
             ) {
 
-                PlanScreen()
+                PlanScreen(
+                    viewModel = planViewModel,
+
+                    onExpeditionClick = { expeditionId ->
+
+                        navController.navigate(
+                            "details/$expeditionId"
+                        )
+                    },
+
+                    onPackingListClick = {
+
+                        navController.navigate(
+                            "packing-list"
+                        )
+                    },
+
+                    onSessionExpired = {
+                        onLogout()
+                    }
+                )
             }
 
             // PROFILE
@@ -143,6 +165,19 @@ fun HimalNavGraph(
                     Text(
                         text = "Moje ekspedicije"
                     )
+                }
+            }
+
+            // PACKING LIST
+            composable(
+                route = "packing-list"
+            ) {
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Packing lista")
                 }
             }
 
