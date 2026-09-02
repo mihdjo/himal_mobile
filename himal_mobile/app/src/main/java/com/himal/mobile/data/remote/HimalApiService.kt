@@ -26,6 +26,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.DELETE
 import retrofit2.http.PUT
+import retrofit2.http.Query
 
 interface HimalApiService {
 
@@ -180,4 +181,27 @@ interface HimalApiService {
         @Path("equipmentId") equipmentId: Long,
         @Header("Authorization") authorization: String
     ): Response<Unit>
+
+    @GET("api/expeditions")
+    suspend fun getExpeditions(
+        @Header("Authorization") authorization: String,
+
+        @Query("search")
+        search: String? = null,
+
+        @Query("location")
+        location: String? = null,
+
+        @Query("difficulty")
+        difficulty: String? = null,
+
+        @Query("typeId")
+        typeId: Long? = null,
+
+        @Query("maxDuration")
+        maxDuration: Int? = null,
+
+        @Query("maxDistance")
+        maxDistance: Double? = null
+    ): Response<List<EkspedicijaResponse>>
 }
