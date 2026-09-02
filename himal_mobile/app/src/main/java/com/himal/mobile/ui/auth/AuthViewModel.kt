@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.himal.mobile.data.local.EquipmentChecklistManager
 
 class AuthViewModel(
     application: Application
@@ -28,6 +29,11 @@ class AuthViewModel(
 
     val uiState: StateFlow<AuthUiState> =
         _uiState.asStateFlow()
+
+    private val checklistManager =
+        EquipmentChecklistManager(
+            application.applicationContext
+        )
 
     init {
         restoreSession()
@@ -120,6 +126,8 @@ class AuthViewModel(
         viewModelScope.launch {
 
             repository.logout()
+
+            checklistManager.clear()
 
             _uiState.value =
                 AuthUiState(

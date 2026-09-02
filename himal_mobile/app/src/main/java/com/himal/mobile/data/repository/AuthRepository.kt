@@ -6,6 +6,7 @@ import com.himal.mobile.data.remote.HimalApiService
 import com.himal.mobile.data.remote.dto.ApiErrorResponse
 import com.himal.mobile.data.remote.dto.LoginRequest
 import kotlinx.coroutines.flow.first
+import com.himal.mobile.data.remote.dto.RegisterRequest
 
 class AuthRepository(
     private val api: HimalApiService,
@@ -67,6 +68,58 @@ class AuthRepository(
             LoginResult.Error(
                 e.message
                     ?: "Nije moguće povezati se sa serverom."
+            )
+        }
+    }
+
+    suspend fun register(
+        request: RegisterRequest
+    ): RegisterResult {
+
+        return try {
+
+            val response =
+                api.register(request)
+
+            if (response.isSuccessful) {
+
+                val user = response.body()
+
+                if (user != null) {
+
+                    RegisterResult.Success(user)
+
+                } else {
+
+                    RegisterResult.Error(
+                        "Server nije vratio podatke novog korisnika."
+                    )
+                }
+
+            } else {
+
+                val message =
+                    try {
+
+                        gson.fromJson(
+                            response.errorBody()?.string(),
+                            ApiErrorResponse::class.java
+                        )?.message
+                            ?: "Registracija nije uspela."
+
+                    } catch (_: Exception) {
+
+                        "Registracija nije uspela."
+                    }
+
+                RegisterResult.Error(message)
+            }
+
+        } catch (e: Exception) {
+
+            RegisterResult.Error(
+                e.message
+                    ?: "Greška prilikom povezivanja sa serverom."
             )
         }
     }

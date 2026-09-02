@@ -9,34 +9,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.ViewModelProvider
 import com.himal.mobile.ui.auth.AuthViewModel
 import com.himal.mobile.ui.auth.LoginScreen
-import com.himal.mobile.ui.feed.FeedScreen
-import com.himal.mobile.ui.feed.FeedViewModel
-import com.himal.mobile.ui.saved.SavedViewModel
-import com.himal.mobile.ui.plan.PlanViewModel
-import com.himal.mobile.ui.theme.HimalTheme
+import com.himal.mobile.ui.auth.RegisterScreen
+import com.himal.mobile.ui.auth.RegisterViewModel
 import com.himal.mobile.ui.details.ExpeditionDetailsViewModel
-import com.himal.mobile.ui.packing.PackingListViewModel
+import com.himal.mobile.ui.feed.FeedViewModel
 import com.himal.mobile.ui.navigation.HimalNavGraph
+import com.himal.mobile.ui.packing.PackingListViewModel
+import com.himal.mobile.ui.plan.PlanViewModel
 import com.himal.mobile.ui.profile.ProfileViewModel
+import com.himal.mobile.ui.saved.SavedViewModel
+import com.himal.mobile.ui.theme.HimalTheme
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var authViewModel: AuthViewModel
     private lateinit var feedViewModel: FeedViewModel
-
     private lateinit var detailsViewModel: ExpeditionDetailsViewModel
-
     private lateinit var savedViewModel: SavedViewModel
-
     private lateinit var planViewModel: PlanViewModel
-
     private lateinit var packingListViewModel: PackingListViewModel
-
     private lateinit var profileViewModel: ProfileViewModel
+    private lateinit var registerViewModel: RegisterViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,12 +76,22 @@ class MainActivity : ComponentActivity() {
                 ProfileViewModel::class.java
             ]
 
+        registerViewModel =
+            ViewModelProvider(this)[
+                RegisterViewModel::class.java
+            ]
+
         setContent {
 
             HimalTheme {
 
                 val authState by
                 authViewModel.uiState.collectAsState()
+
+                var showRegister by
+                rememberSaveable {
+                    mutableStateOf(false)
+                }
 
                 when {
 
@@ -111,6 +121,7 @@ class MainActivity : ComponentActivity() {
                                 packingListViewModel,
                             profileViewModel =
                                 profileViewModel,
+
                             onLogout = {
 
                                 feedViewModel.reset()
@@ -119,8 +130,33 @@ class MainActivity : ComponentActivity() {
                                 planViewModel.reset()
                                 packingListViewModel.reset()
                                 profileViewModel.reset()
+                                registerViewModel.reset()
 
                                 authViewModel.logout()
+                            }
+                        )
+                    }
+
+                    showRegister -> {
+
+                        RegisterScreen(
+                            viewModel = registerViewModel,
+
+                            onBackToLogin = {
+
+                                registerViewModel.reset()
+                                showRegister = false
+                            },
+
+                            onRegistrationSuccess = { username ->
+
+                                authViewModel.onUsernameChange(
+                                    username
+                                )
+
+                                registerViewModel.reset()
+
+                                showRegister = false
                             }
                         )
                     }
@@ -128,7 +164,12 @@ class MainActivity : ComponentActivity() {
                     else -> {
 
                         LoginScreen(
-                            viewModel = authViewModel
+                            viewModel = authViewModel,
+
+                            onRegisterClick = {
+
+                                showRegister = true
+                            }
                         )
                     }
                 }

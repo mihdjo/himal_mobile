@@ -10,6 +10,8 @@ import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
 import com.himal.mobile.data.remote.dto.UpdateMojPlanStatusRequest
 import com.himal.mobile.data.remote.dto.KorisnikResponse
 import com.himal.mobile.data.remote.dto.UpdateKorisnikRequest
+import com.himal.mobile.data.remote.dto.RegisterRequest
+import com.himal.mobile.data.remote.dto.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -105,4 +107,9 @@ interface HimalApiService {
         @Header("Authorization") authorization: String,
         @Body request: UpdateKorisnikRequest
     ): Response<KorisnikResponse>
+
+    @POST("api/auth/register")
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): Response<RegisterResponse>
 }
