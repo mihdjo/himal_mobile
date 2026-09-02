@@ -7,6 +7,7 @@ import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
 import com.himal.mobile.data.remote.dto.MojPlanResponse
 import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
 import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
+import com.himal.mobile.data.remote.dto.UpdateMojPlanStatusRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -14,6 +15,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.DELETE
+import retrofit2.http.PUT
 
 interface HimalApiService {
 
@@ -83,4 +85,11 @@ interface HimalApiService {
     suspend fun getGroupedPlanEquipment(
         @Header("Authorization") authorization: String
     ): Response<List<GrupisanaOpremaResponse>>
+
+    @PUT("api/users/me/plan/{id}/status")
+    suspend fun updatePlanStatus(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String,
+        @Body request: UpdateMojPlanStatusRequest
+    ): Response<MojPlanResponse>
 }

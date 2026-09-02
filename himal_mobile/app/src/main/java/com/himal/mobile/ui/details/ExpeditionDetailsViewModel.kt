@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.himal.mobile.data.local.SessionManager
+import com.himal.mobile.data.local.EquipmentChecklistManager
 import com.himal.mobile.data.remote.RetrofitClient
 import com.himal.mobile.data.repository.ExpeditionDetailsRepository
 import com.himal.mobile.data.repository.ExpeditionDetailsResult
@@ -30,6 +31,11 @@ class ExpeditionDetailsViewModel(
     private val _uiState =
         MutableStateFlow(
             ExpeditionDetailsUiState()
+        )
+
+    private val checklistManager =
+        EquipmentChecklistManager(
+            application.applicationContext
         )
 
     val uiState: StateFlow<ExpeditionDetailsUiState> =
@@ -259,6 +265,13 @@ class ExpeditionDetailsViewModel(
             when (result) {
 
                 ActionResult.Success -> {
+
+                    if (currentlyInPlan) {
+
+                        checklistManager.clearExpedition(
+                            expeditionId
+                        )
+                    }
 
                     _uiState.value =
                         _uiState.value.copy(

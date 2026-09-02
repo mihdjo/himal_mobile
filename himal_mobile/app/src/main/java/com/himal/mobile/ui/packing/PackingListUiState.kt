@@ -12,9 +12,14 @@ data class PackingListUiState(
     val grouped:
     List<GrupisanaOpremaResponse> = emptyList(),
 
+    val preparedItems:
+    Set<String> = emptySet(),
+
     val viewMode: PackingViewMode =
         PackingViewMode.ALL,
 
     val errorMessage: String? = null,
+    val checklistErrorMessage: String? = null,
+
     val sessionExpired: Boolean = false
 )

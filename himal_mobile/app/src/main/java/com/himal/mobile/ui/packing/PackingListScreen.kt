@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
 import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
+import androidx.compose.material3.Checkbox
+import com.himal.mobile.data.local.checklistKey
 
 @Composable
 fun PackingListScreen(
@@ -117,19 +119,41 @@ fun PackingListScreen(
                         viewModel::showGrouped
                 )
 
+                state.checklistErrorMessage?.let { error ->
+
+                    Text(
+                        text = error,
+                        color =
+                            MaterialTheme.colorScheme.error,
+                        modifier =
+                            Modifier.padding(
+                                horizontal = 16.dp
+                            )
+                    )
+                }
+
                 when (state.viewMode) {
 
                     PackingViewMode.ALL -> {
 
                         AggregatedPackingList(
-                            items = state.aggregated
+                            items = state.aggregated,
+                            groups = state.grouped,
+                            preparedItems =
+                                state.preparedItems,
+                            onCheckedChange =
+                                viewModel::toggleAggregatedEquipment
                         )
                     }
 
                     PackingViewMode.GROUPED -> {
 
                         GroupedPackingList(
-                            groups = state.grouped
+                            groups = state.grouped,
+                            preparedItems =
+                                state.preparedItems,
+                            onCheckedChange =
+                                viewModel::toggleEquipment
                         )
                     }
                 }
@@ -201,7 +225,10 @@ private fun PackingModeSelector(
 
 @Composable
 private fun AggregatedPackingList(
-    items: List<AgregiranaOpremaResponse>
+    items: List<AgregiranaOpremaResponse>,
+    groups: List<GrupisanaOpremaResponse>,
+    preparedItems: Set<String>,
+    onCheckedChange: (Long, Boolean) -> Unit
 ) {
 
     if (items.isEmpty()) {
@@ -210,25 +237,20 @@ private fun AggregatedPackingList(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement =
-                Arrangement.Center,
-            horizontalAlignment =
-                Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Text(
-                text =
-                    "Packing lista je prazna."
+                text = "Packing lista je prazna."
             )
 
             Spacer(
-                modifier =
-                    Modifier.height(8.dp)
+                modifier = Modifier.height(8.dp)
             )
 
             Text(
-                text =
-                    "Dodaj ekspedicije u Moj plan."
+                text = "Dodaj ekspedicije u Moj plan."
             )
         }
 
@@ -237,10 +259,8 @@ private fun AggregatedPackingList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding =
-            PaddingValues(16.dp),
-        verticalArrangement =
-            Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
         items(
@@ -250,8 +270,35 @@ private fun AggregatedPackingList(
             }
         ) { equipment ->
 
+            val relatedGroups =
+                groups.filter { group ->
+
+                    group.oprema.any {
+                        it.idOpreme ==
+                                equipment.idOpreme
+                    }
+                }
+
+            val checked =
+                relatedGroups.isNotEmpty() &&
+                        relatedGroups.all { group ->
+
+                            checklistKey(
+                                group.idEkspedicije,
+                                equipment.idOpreme
+                            ) in preparedItems
+                        }
+
             AggregatedEquipmentCard(
-                equipment = equipment
+                equipment = equipment,
+                checked = checked,
+                onCheckedChange = { value ->
+
+                    onCheckedChange(
+                        equipment.idOpreme,
+                        value
+                    )
+                }
             )
         }
     }
@@ -259,57 +306,73 @@ private fun AggregatedPackingList(
 
 @Composable
 private fun AggregatedEquipmentCard(
-    equipment: AgregiranaOpremaResponse
+    equipment: AgregiranaOpremaResponse,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
 
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
 
-        Column(
-            modifier =
-                Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment =
+                Alignment.CenterVertically
         ) {
 
-            Text(
-                text = equipment.naziv,
-                style =
-                    MaterialTheme.typography.titleMedium
+            Checkbox(
+                checked = checked,
+                onCheckedChange =
+                    onCheckedChange
             )
 
-            Spacer(
-                modifier =
-                    Modifier.height(4.dp)
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
 
-            Text(
-                text =
-                    "Ukupna količina: " +
-                            "${equipment.ukupnaKolicina}"
-            )
+                Text(
+                    text = equipment.naziv,
+                    style =
+                        MaterialTheme.typography.titleMedium
+                )
 
-            Text(
-                text =
-                    if (equipment.obavezna)
-                        "Obavezna oprema"
-                    else
-                        "Opciona oprema"
-            )
+                Spacer(
+                    modifier =
+                        Modifier.height(4.dp)
+                )
 
-            equipment.opis?.let {
+                Text(
+                    text =
+                        "Ukupna količina: " +
+                                "${equipment.ukupnaKolicina}"
+                )
 
-                if (it.isNotBlank()) {
+                Text(
+                    text =
+                        if (equipment.obavezna)
+                            "Obavezna oprema"
+                        else
+                            "Opciona oprema"
+                )
 
-                    Spacer(
-                        modifier =
-                            Modifier.height(8.dp)
-                    )
+                equipment.opis?.let {
 
-                    Text(
-                        text = it,
-                        style =
-                            MaterialTheme.typography.bodySmall
-                    )
+                    if (it.isNotBlank()) {
+
+                        Spacer(
+                            modifier =
+                                Modifier.height(8.dp)
+                        )
+
+                        Text(
+                            text = it,
+                            style =
+                                MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
@@ -318,7 +381,10 @@ private fun AggregatedEquipmentCard(
 
 @Composable
 private fun GroupedPackingList(
-    groups: List<GrupisanaOpremaResponse>
+    groups: List<GrupisanaOpremaResponse>,
+    preparedItems: Set<String>,
+    onCheckedChange:
+        (Long, Long, Boolean) -> Unit
 ) {
 
     if (groups.isEmpty()) {
@@ -357,7 +423,11 @@ private fun GroupedPackingList(
         ) { group ->
 
             ExpeditionEquipmentGroup(
-                group = group
+                group = group,
+                preparedItems =
+                    preparedItems,
+                onCheckedChange =
+                    onCheckedChange
             )
         }
     }
@@ -365,7 +435,10 @@ private fun GroupedPackingList(
 
 @Composable
 private fun ExpeditionEquipmentGroup(
-    group: GrupisanaOpremaResponse
+    group: GrupisanaOpremaResponse,
+    preparedItems: Set<String>,
+    onCheckedChange:
+        (Long, Long, Boolean) -> Unit
 ) {
 
     Column(
@@ -410,7 +483,22 @@ private fun ExpeditionEquipmentGroup(
             group.oprema.forEach { equipment ->
 
                 GroupedEquipmentCard(
-                    equipment = equipment
+                    equipment = equipment,
+
+                    checked =
+                        checklistKey(
+                            group.idEkspedicije,
+                            equipment.idOpreme
+                        ) in preparedItems,
+
+                    onCheckedChange = { checked ->
+
+                        onCheckedChange(
+                            group.idEkspedicije,
+                            equipment.idOpreme,
+                            checked
+                        )
+                    }
                 )
 
                 Spacer(
@@ -424,51 +512,67 @@ private fun ExpeditionEquipmentGroup(
 
 @Composable
 private fun GroupedEquipmentCard(
-    equipment: EkspedicijaOpremaResponse
+    equipment: EkspedicijaOpremaResponse,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
 
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
 
-        Column(
-            modifier =
-                Modifier.padding(12.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment =
+                Alignment.CenterVertically
         ) {
 
-            Text(
-                text = equipment.naziv,
-                style =
-                    MaterialTheme.typography.titleMedium
+            Checkbox(
+                checked = checked,
+                onCheckedChange =
+                    onCheckedChange
             )
 
-            Text(
-                text =
-                    "Količina: ${equipment.kolicina}"
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
 
-            Text(
-                text =
-                    if (equipment.obavezna)
-                        "Obavezna"
-                    else
-                        "Opciona"
-            )
+                Text(
+                    text = equipment.naziv,
+                    style =
+                        MaterialTheme.typography.titleMedium
+                )
 
-            equipment.napomena?.let {
+                Text(
+                    text =
+                        "Količina: ${equipment.kolicina}"
+                )
 
-                if (it.isNotBlank()) {
+                Text(
+                    text =
+                        if (equipment.obavezna)
+                            "Obavezna"
+                        else
+                            "Opciona"
+                )
 
-                    Spacer(
-                        modifier =
-                            Modifier.height(4.dp)
-                    )
+                equipment.napomena?.let {
 
-                    Text(
-                        text = "Napomena: $it",
-                        style =
-                            MaterialTheme.typography.bodySmall
-                    )
+                    if (it.isNotBlank()) {
+
+                        Spacer(
+                            modifier =
+                                Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            text = "Napomena: $it",
+                            style =
+                                MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }

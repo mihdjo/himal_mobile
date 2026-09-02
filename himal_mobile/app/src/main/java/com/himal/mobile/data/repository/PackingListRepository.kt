@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.himal.mobile.data.local.SessionManager
 import com.himal.mobile.data.remote.HimalApiService
 import com.himal.mobile.data.remote.dto.ApiErrorResponse
+import com.himal.mobile.data.remote.dto.UpdateMojPlanStatusRequest
 import kotlinx.coroutines.flow.first
 
 class PackingListRepository(
@@ -87,6 +88,65 @@ class PackingListRepository(
             PackingListResult.Error(
                 e.message
                     ?: "Greška prilikom povezivanja sa serverom."
+            )
+        }
+    }
+
+    suspend fun updatePlanStatus(
+        expeditionId: Long,
+        status: Boolean
+    ): ActionResult {
+
+        return try {
+
+            val token =
+                sessionManager.token.first()
+
+            if (token.isNullOrBlank()) {
+                return ActionResult.Unauthorized
+            }
+
+            val response =
+                api.updatePlanStatus(
+                    id = expeditionId,
+                    authorization = "Bearer $token",
+                    request =
+                        UpdateMojPlanStatusRequest(
+                            status = status
+                        )
+                )
+
+            when {
+
+                response.isSuccessful -> {
+                    ActionResult.Success
+                }
+
+                response.code() == 401 -> {
+
+                    sessionManager.clearToken()
+
+                    ActionResult.Unauthorized
+                }
+
+                else -> {
+
+                    ActionResult.Error(
+                        readErrorMessage(
+                            response
+                                .errorBody()
+                                ?.string(),
+                            "Nije moguće promeniti status ekspedicije."
+                        )
+                    )
+                }
+            }
+
+        } catch (e: Exception) {
+
+            ActionResult.Error(
+                e.message
+                    ?: "Nije moguće promeniti status ekspedicije."
             )
         }
     }
