@@ -22,11 +22,13 @@ import com.himal.mobile.ui.feed.FeedViewModel
 import com.himal.mobile.ui.plan.PlanScreen
 import com.himal.mobile.ui.profile.ProfileScreen
 import com.himal.mobile.ui.saved.SavedScreen
+import com.himal.mobile.ui.saved.SavedViewModel
 
 @Composable
 fun HimalNavGraph(
     feedViewModel: FeedViewModel,
     detailsViewModel: ExpeditionDetailsViewModel,
+    savedViewModel: SavedViewModel,
     onLogout: () -> Unit
 ) {
 
@@ -96,7 +98,20 @@ fun HimalNavGraph(
                 route = MainDestination.SAVED.route
             ) {
 
-                SavedScreen()
+                SavedScreen(
+                    viewModel = savedViewModel,
+
+                    onExpeditionClick = { expeditionId ->
+
+                        navController.navigate(
+                            "details/$expeditionId"
+                        )
+                    },
+
+                    onSessionExpired = {
+                        onLogout()
+                    }
+                )
             }
 
             // MOJ PLAN

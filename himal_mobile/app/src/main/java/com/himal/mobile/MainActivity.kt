@@ -15,6 +15,7 @@ import com.himal.mobile.ui.auth.AuthViewModel
 import com.himal.mobile.ui.auth.LoginScreen
 import com.himal.mobile.ui.feed.FeedScreen
 import com.himal.mobile.ui.feed.FeedViewModel
+import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.theme.HimalTheme
 import com.himal.mobile.ui.details.ExpeditionDetailsViewModel
 import com.himal.mobile.ui.navigation.HimalNavGraph
@@ -25,6 +26,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var feedViewModel: FeedViewModel
 
     private lateinit var detailsViewModel: ExpeditionDetailsViewModel
+
+    private lateinit var savedViewModel: SavedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +45,11 @@ class MainActivity : ComponentActivity() {
         detailsViewModel =
             ViewModelProvider(this)[
                 ExpeditionDetailsViewModel::class.java
+            ]
+
+        savedViewModel =
+            ViewModelProvider(this)[
+                SavedViewModel::class.java
             ]
 
         setContent {
@@ -73,9 +81,11 @@ class MainActivity : ComponentActivity() {
                         HimalNavGraph(
                             feedViewModel = feedViewModel,
                             detailsViewModel = detailsViewModel,
+                            savedViewModel = savedViewModel,
                             onLogout = {
                                 feedViewModel.reset()
                                 detailsViewModel.reset()
+                                savedViewModel.reset()
                                 authViewModel.logout()
                             }
                         )
