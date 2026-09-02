@@ -5,6 +5,8 @@ import com.himal.mobile.data.remote.dto.LoginRequest
 import com.himal.mobile.data.remote.dto.LoginResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
 import com.himal.mobile.data.remote.dto.MojPlanResponse
+import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
+import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -71,4 +73,14 @@ interface HimalApiService {
         @Path("id") id: Long,
         @Header("Authorization") authorization: String
     ): Response<Unit>
+
+    @GET("api/users/me/plan/equipment")
+    suspend fun getAggregatedPlanEquipment(
+        @Header("Authorization") authorization: String
+    ): Response<List<AgregiranaOpremaResponse>>
+
+    @GET("api/users/me/plan/equipment/grouped")
+    suspend fun getGroupedPlanEquipment(
+        @Header("Authorization") authorization: String
+    ): Response<List<GrupisanaOpremaResponse>>
 }

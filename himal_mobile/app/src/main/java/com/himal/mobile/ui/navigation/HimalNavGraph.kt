@@ -24,6 +24,8 @@ import com.himal.mobile.ui.profile.ProfileScreen
 import com.himal.mobile.ui.saved.SavedScreen
 import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.plan.PlanViewModel
+import com.himal.mobile.ui.packing.PackingListScreen
+import com.himal.mobile.ui.packing.PackingListViewModel
 
 @Composable
 fun HimalNavGraph(
@@ -31,6 +33,7 @@ fun HimalNavGraph(
     detailsViewModel: ExpeditionDetailsViewModel,
     savedViewModel: SavedViewModel,
     planViewModel: PlanViewModel,
+    packingListViewModel: PackingListViewModel,
     onLogout: () -> Unit
 ) {
 
@@ -173,12 +176,13 @@ fun HimalNavGraph(
                 route = "packing-list"
             ) {
 
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Packing lista")
-                }
+                PackingListScreen(
+                    viewModel = packingListViewModel,
+
+                    onSessionExpired = {
+                        onLogout()
+                    }
+                )
             }
 
             // EXPEDITION DETAILS

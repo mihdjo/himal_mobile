@@ -19,6 +19,7 @@ import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.plan.PlanViewModel
 import com.himal.mobile.ui.theme.HimalTheme
 import com.himal.mobile.ui.details.ExpeditionDetailsViewModel
+import com.himal.mobile.ui.packing.PackingListViewModel
 import com.himal.mobile.ui.navigation.HimalNavGraph
 
 class MainActivity : ComponentActivity() {
@@ -31,6 +32,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var savedViewModel: SavedViewModel
 
     private lateinit var planViewModel: PlanViewModel
+
+    private lateinit var packingListViewModel: PackingListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +61,11 @@ class MainActivity : ComponentActivity() {
         planViewModel =
             ViewModelProvider(this)[
                 PlanViewModel::class.java
+            ]
+
+        packingListViewModel =
+            ViewModelProvider(this)[
+                PackingListViewModel::class.java
             ]
 
         setContent {
@@ -91,11 +99,16 @@ class MainActivity : ComponentActivity() {
                             detailsViewModel = detailsViewModel,
                             savedViewModel = savedViewModel,
                             planViewModel = planViewModel,
+                            packingListViewModel =
+                                packingListViewModel,
                             onLogout = {
+
                                 feedViewModel.reset()
                                 detailsViewModel.reset()
                                 savedViewModel.reset()
                                 planViewModel.reset()
+                                packingListViewModel.reset()
+
                                 authViewModel.logout()
                             }
                         )
