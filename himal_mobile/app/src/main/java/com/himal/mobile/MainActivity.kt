@@ -26,6 +26,8 @@ import com.himal.mobile.ui.plan.PlanViewModel
 import com.himal.mobile.ui.profile.ProfileViewModel
 import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.theme.HimalTheme
+import com.himal.mobile.ui.myexpeditions.MyExpeditionsViewModel
+import com.himal.mobile.ui.expeditionform.ExpeditionFormViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -37,6 +39,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var packingListViewModel: PackingListViewModel
     private lateinit var profileViewModel: ProfileViewModel
     private lateinit var registerViewModel: RegisterViewModel
+
+    private lateinit var myExpeditionsViewModel: MyExpeditionsViewModel
+
+    private lateinit var expeditionFormViewModel: ExpeditionFormViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +87,16 @@ class MainActivity : ComponentActivity() {
                 RegisterViewModel::class.java
             ]
 
+        myExpeditionsViewModel =
+            ViewModelProvider(this)[
+                MyExpeditionsViewModel::class.java
+            ]
+
+        expeditionFormViewModel =
+            ViewModelProvider(this)[
+                ExpeditionFormViewModel::class.java
+            ]
+
         setContent {
 
             HimalTheme {
@@ -121,6 +137,10 @@ class MainActivity : ComponentActivity() {
                                 packingListViewModel,
                             profileViewModel =
                                 profileViewModel,
+                            myExpeditionsViewModel =
+                                myExpeditionsViewModel,
+                            expeditionFormViewModel =
+                                expeditionFormViewModel,
 
                             onLogout = {
 
@@ -131,6 +151,8 @@ class MainActivity : ComponentActivity() {
                                 packingListViewModel.reset()
                                 profileViewModel.reset()
                                 registerViewModel.reset()
+                                myExpeditionsViewModel.reset()
+                                expeditionFormViewModel.reset()
 
                                 authViewModel.logout()
                             }

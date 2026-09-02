@@ -12,6 +12,8 @@ import com.himal.mobile.data.remote.dto.KorisnikResponse
 import com.himal.mobile.data.remote.dto.UpdateKorisnikRequest
 import com.himal.mobile.data.remote.dto.RegisterRequest
 import com.himal.mobile.data.remote.dto.RegisterResponse
+import com.himal.mobile.data.remote.dto.EkspedicijaRequest
+import com.himal.mobile.data.remote.dto.TipEkspedicijeResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -112,4 +114,33 @@ interface HimalApiService {
     suspend fun register(
         @Body request: RegisterRequest
     ): Response<RegisterResponse>
+
+    @GET("api/users/me/expeditions")
+    suspend fun getMyExpeditions(
+        @Header("Authorization") authorization: String
+    ): Response<List<EkspedicijaResponse>>
+
+    @POST("api/expeditions")
+    suspend fun createExpedition(
+        @Header("Authorization") authorization: String,
+        @Body request: EkspedicijaRequest
+    ): Response<EkspedicijaResponse>
+
+    @PUT("api/expeditions/{id}")
+    suspend fun updateExpedition(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String,
+        @Body request: EkspedicijaRequest
+    ): Response<EkspedicijaResponse>
+
+    @DELETE("api/expeditions/{id}")
+    suspend fun deleteExpedition(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
+
+    @GET("api/expedition-types")
+    suspend fun getExpeditionTypes(
+        @Header("Authorization") authorization: String
+    ): Response<List<TipEkspedicijeResponse>>
 }

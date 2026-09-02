@@ -27,6 +27,10 @@ import com.himal.mobile.ui.plan.PlanViewModel
 import com.himal.mobile.ui.packing.PackingListScreen
 import com.himal.mobile.ui.packing.PackingListViewModel
 import com.himal.mobile.ui.profile.ProfileViewModel
+import com.himal.mobile.ui.myexpeditions.MyExpeditionsScreen
+import com.himal.mobile.ui.myexpeditions.MyExpeditionsViewModel
+import com.himal.mobile.ui.expeditionform.ExpeditionFormScreen
+import com.himal.mobile.ui.expeditionform.ExpeditionFormViewModel
 
 @Composable
 fun HimalNavGraph(
@@ -36,6 +40,8 @@ fun HimalNavGraph(
     planViewModel: PlanViewModel,
     packingListViewModel: PackingListViewModel,
     profileViewModel: ProfileViewModel,
+    myExpeditionsViewModel: MyExpeditionsViewModel,
+    expeditionFormViewModel: ExpeditionFormViewModel,
     onLogout: () -> Unit
 ){
 
@@ -165,15 +171,108 @@ fun HimalNavGraph(
                 route = "my-expeditions"
             ) {
 
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                MyExpeditionsScreen(
+                    viewModel =
+                        myExpeditionsViewModel,
 
-                    Text(
-                        text = "Moje ekspedicije"
-                    )
-                }
+                    onCreateClick = {
+
+                        navController.navigate(
+                            "create-expedition"
+                        )
+                    },
+
+                    onOpenClick = { id ->
+
+                        navController.navigate(
+                            "details/$id"
+                        )
+                    },
+
+                    onEditClick = { id ->
+
+                        navController.navigate(
+                            "edit-expedition/$id"
+                        )
+                    },
+
+                    onSessionExpired =
+                        onLogout
+                )
+            }
+
+            // CREATE EXPEDITION
+            composable(
+                route = "create-expedition"
+            ) {
+
+                ExpeditionFormScreen(
+                    viewModel =
+                        expeditionFormViewModel,
+
+                    expeditionId = null,
+
+                    onSaved = {
+
+                        expeditionFormViewModel.reset()
+
+                        navController.popBackStack()
+                    },
+
+                    onCancel = {
+
+                        expeditionFormViewModel.reset()
+
+                        navController.popBackStack()
+                    },
+
+                    onSessionExpired =
+                        onLogout
+                )
+            }
+
+
+            // EDIT EXPEDITION
+            composable(
+                route = "edit-expedition/{expeditionId}",
+                arguments = listOf(
+                    navArgument("expeditionId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val expeditionId =
+                    backStackEntry.arguments
+                        ?.getLong(
+                            "expeditionId"
+                        )
+                        ?: return@composable
+
+                ExpeditionFormScreen(
+                    viewModel =
+                        expeditionFormViewModel,
+
+                    expeditionId =
+                        expeditionId,
+
+                    onSaved = {
+
+                        expeditionFormViewModel.reset()
+
+                        navController.popBackStack()
+                    },
+
+                    onCancel = {
+
+                        expeditionFormViewModel.reset()
+
+                        navController.popBackStack()
+                    },
+
+                    onSessionExpired =
+                        onLogout
+                )
             }
 
             // PACKING LIST
