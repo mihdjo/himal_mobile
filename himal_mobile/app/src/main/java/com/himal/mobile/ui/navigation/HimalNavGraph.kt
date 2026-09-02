@@ -26,6 +26,7 @@ import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.plan.PlanViewModel
 import com.himal.mobile.ui.packing.PackingListScreen
 import com.himal.mobile.ui.packing.PackingListViewModel
+import com.himal.mobile.ui.profile.ProfileViewModel
 
 @Composable
 fun HimalNavGraph(
@@ -34,8 +35,9 @@ fun HimalNavGraph(
     savedViewModel: SavedViewModel,
     planViewModel: PlanViewModel,
     packingListViewModel: PackingListViewModel,
+    profileViewModel: ProfileViewModel,
     onLogout: () -> Unit
-) {
+){
 
     val navController = rememberNavController()
 
@@ -152,7 +154,10 @@ fun HimalNavGraph(
                 route = MainDestination.PROFILE.route
             ) {
 
-                ProfileScreen()
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    onLogout = onLogout
+                )
             }
 
             // MY EXPEDITIONS

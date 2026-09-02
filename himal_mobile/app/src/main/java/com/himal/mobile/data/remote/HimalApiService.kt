@@ -8,6 +8,8 @@ import com.himal.mobile.data.remote.dto.MojPlanResponse
 import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
 import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
 import com.himal.mobile.data.remote.dto.UpdateMojPlanStatusRequest
+import com.himal.mobile.data.remote.dto.KorisnikResponse
+import com.himal.mobile.data.remote.dto.UpdateKorisnikRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -92,4 +94,15 @@ interface HimalApiService {
         @Header("Authorization") authorization: String,
         @Body request: UpdateMojPlanStatusRequest
     ): Response<MojPlanResponse>
+
+    @GET("api/users/me")
+    suspend fun getCurrentUser(
+        @Header("Authorization") authorization: String
+    ): Response<KorisnikResponse>
+
+    @PUT("api/users/me")
+    suspend fun updateCurrentUser(
+        @Header("Authorization") authorization: String,
+        @Body request: UpdateKorisnikRequest
+    ): Response<KorisnikResponse>
 }
