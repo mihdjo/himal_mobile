@@ -1,11 +1,13 @@
 package com.himal.mobile.data.remote
 
+import com.himal.mobile.data.remote.dto.AddEkspedicijaOpremaRequest
 import com.himal.mobile.data.remote.dto.EkspedicijaResponse
 import com.himal.mobile.data.remote.dto.LoginRequest
 import com.himal.mobile.data.remote.dto.LoginResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
 import com.himal.mobile.data.remote.dto.MojPlanResponse
 import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
+import com.himal.mobile.data.remote.dto.CreateOpremaRequest
 import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
 import com.himal.mobile.data.remote.dto.UpdateMojPlanStatusRequest
 import com.himal.mobile.data.remote.dto.KorisnikResponse
@@ -13,7 +15,9 @@ import com.himal.mobile.data.remote.dto.UpdateKorisnikRequest
 import com.himal.mobile.data.remote.dto.RegisterRequest
 import com.himal.mobile.data.remote.dto.RegisterResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaRequest
+import com.himal.mobile.data.remote.dto.OpremaResponse
 import com.himal.mobile.data.remote.dto.TipEkspedicijeResponse
+import com.himal.mobile.data.remote.dto.UpdateEkspedicijaOpremaRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -143,4 +147,37 @@ interface HimalApiService {
     suspend fun getExpeditionTypes(
         @Header("Authorization") authorization: String
     ): Response<List<TipEkspedicijeResponse>>
+
+    @GET("api/equipment")
+    suspend fun getEquipmentCatalog(
+        @Header("Authorization") authorization: String
+    ): Response<List<OpremaResponse>>
+
+    @POST("api/equipment")
+    suspend fun createEquipment(
+        @Header("Authorization") authorization: String,
+        @Body request: CreateOpremaRequest
+    ): Response<OpremaResponse>
+
+    @POST("api/expeditions/{id}/equipment")
+    suspend fun addExpeditionEquipment(
+        @Path("id") expeditionId: Long,
+        @Header("Authorization") authorization: String,
+        @Body request: AddEkspedicijaOpremaRequest
+    ): Response<EkspedicijaOpremaResponse>
+
+    @PUT("api/expeditions/{id}/equipment/{equipmentId}")
+    suspend fun updateExpeditionEquipment(
+        @Path("id") expeditionId: Long,
+        @Path("equipmentId") equipmentId: Long,
+        @Header("Authorization") authorization: String,
+        @Body request: UpdateEkspedicijaOpremaRequest
+    ): Response<EkspedicijaOpremaResponse>
+
+    @DELETE("api/expeditions/{id}/equipment/{equipmentId}")
+    suspend fun deleteExpeditionEquipment(
+        @Path("id") expeditionId: Long,
+        @Path("equipmentId") equipmentId: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
 }

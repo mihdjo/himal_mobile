@@ -1,13 +1,9 @@
 package com.himal.mobile.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.himal.mobile.ui.details.ExpeditionDetailsScreen
 import com.himal.mobile.ui.details.ExpeditionDetailsViewModel
+import com.himal.mobile.ui.equipmentmanagement.EquipmentManagementScreen
+import com.himal.mobile.ui.equipmentmanagement.EquipmentManagementViewModel
 import com.himal.mobile.ui.feed.FeedScreen
 import com.himal.mobile.ui.feed.FeedViewModel
 import com.himal.mobile.ui.plan.PlanScreen
@@ -42,7 +40,8 @@ fun HimalNavGraph(
     profileViewModel: ProfileViewModel,
     myExpeditionsViewModel: MyExpeditionsViewModel,
     expeditionFormViewModel: ExpeditionFormViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    equipmentManagementViewModel: EquipmentManagementViewModel
 ){
 
     val navController = rememberNavController()
@@ -172,32 +171,33 @@ fun HimalNavGraph(
             ) {
 
                 MyExpeditionsScreen(
-                    viewModel =
-                        myExpeditionsViewModel,
+                    viewModel = myExpeditionsViewModel,
 
                     onCreateClick = {
-
                         navController.navigate(
                             "create-expedition"
                         )
                     },
 
                     onOpenClick = { id ->
-
                         navController.navigate(
                             "details/$id"
                         )
                     },
 
                     onEditClick = { id ->
-
                         navController.navigate(
                             "edit-expedition/$id"
                         )
                     },
 
-                    onSessionExpired =
-                        onLogout
+                    onEquipmentClick = { id ->
+                        navController.navigate(
+                            "manage-equipment/$id"
+                        )
+                    },
+
+                    onSessionExpired = onLogout
                 )
             }
 
@@ -315,6 +315,31 @@ fun HimalNavGraph(
                     onSessionExpired = {
                         onLogout()
                     }
+                )
+            }
+
+            // EQUIPMENT
+            composable(
+                route = "manage-equipment/{expeditionId}",
+                arguments = listOf(
+                    navArgument("expeditionId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val expeditionId =
+                    backStackEntry.arguments
+                        ?.getLong("expeditionId")
+                        ?: return@composable
+
+                EquipmentManagementScreen(
+                    expeditionId = expeditionId,
+                    viewModel = equipmentManagementViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onSessionExpired = onLogout
                 )
             }
         }

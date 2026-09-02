@@ -28,6 +28,7 @@ import com.himal.mobile.ui.saved.SavedViewModel
 import com.himal.mobile.ui.theme.HimalTheme
 import com.himal.mobile.ui.myexpeditions.MyExpeditionsViewModel
 import com.himal.mobile.ui.expeditionform.ExpeditionFormViewModel
+import com.himal.mobile.ui.equipmentmanagement.EquipmentManagementViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -43,6 +44,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var myExpeditionsViewModel: MyExpeditionsViewModel
 
     private lateinit var expeditionFormViewModel: ExpeditionFormViewModel
+
+    private lateinit var equipmentManagementViewModel: EquipmentManagementViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +100,11 @@ class MainActivity : ComponentActivity() {
                 ExpeditionFormViewModel::class.java
             ]
 
+        equipmentManagementViewModel =
+            ViewModelProvider(this)[
+                EquipmentManagementViewModel::class.java
+            ]
+
         setContent {
 
             HimalTheme {
@@ -141,6 +149,8 @@ class MainActivity : ComponentActivity() {
                                 myExpeditionsViewModel,
                             expeditionFormViewModel =
                                 expeditionFormViewModel,
+                            equipmentManagementViewModel =
+                                equipmentManagementViewModel,
 
                             onLogout = {
 
@@ -153,6 +163,7 @@ class MainActivity : ComponentActivity() {
                                 registerViewModel.reset()
                                 myExpeditionsViewModel.reset()
                                 expeditionFormViewModel.reset()
+                                equipmentManagementViewModel.reset()
 
                                 authViewModel.logout()
                             }

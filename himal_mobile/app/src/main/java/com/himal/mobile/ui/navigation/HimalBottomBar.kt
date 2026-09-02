@@ -30,9 +30,12 @@ fun HimalBottomBar(
                     currentRoute == "my-expeditions" ||
                             currentRoute == "create-expedition" ||
                             currentRoute
-                                ?.startsWith("edit-expedition") == true -> {
+                                ?.startsWith("edit-expedition") == true ||
+                            currentRoute
+                                ?.startsWith("manage-equipment") == true -> {
 
-                        destination == MainDestination.FEED
+                        destination ==
+                                MainDestination.FEED
                     }
 
                     // Packing lista pripada Moj Plan sekciji

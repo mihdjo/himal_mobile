@@ -37,6 +37,7 @@ fun MyExpeditionsScreen(
     onCreateClick: () -> Unit,
     onOpenClick: (Long) -> Unit,
     onEditClick: (Long) -> Unit,
+    onEquipmentClick: (Long) -> Unit,
     onSessionExpired: () -> Unit
 ) {
 
@@ -113,7 +114,8 @@ fun MyExpeditionsScreen(
         state.isLoading -> {
 
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier =
+                    Modifier.fillMaxSize(),
                 verticalArrangement =
                     Arrangement.Center,
                 horizontalAlignment =
@@ -140,9 +142,10 @@ fun MyExpeditionsScreen(
 
                 Button(
                     onClick = onCreateClick,
-                    modifier = Modifier.padding(
-                        horizontal = 16.dp
-                    )
+                    modifier =
+                        Modifier.padding(
+                            horizontal = 16.dp
+                        )
                 ) {
                     Text("+ Nova ekspedicija")
                 }
@@ -205,20 +208,30 @@ fun MyExpeditionsScreen(
                                             expedition.idEkspedicije,
 
                                 onOpen = {
+
                                     onOpenClick(
                                         expedition.idEkspedicije
                                     )
                                 },
 
                                 onEdit = {
+
                                     onEditClick(
                                         expedition.idEkspedicije
                                     )
                                 },
 
                                 onDelete = {
+
                                     expeditionToDelete =
                                         expedition
+                                },
+
+                                onEquipment = {
+
+                                    onEquipmentClick(
+                                        expedition.idEkspedicije
+                                    )
                                 }
                             )
                         }
@@ -235,7 +248,8 @@ private fun MyExpeditionCard(
     isDeleting: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEquipment: () -> Unit
 ) {
 
     Card(
@@ -300,17 +314,38 @@ private fun MyExpeditionCard(
 
                 Button(
                     onClick = onDelete,
-                    enabled = !isDeleting,
+                    enabled =
+                        !isDeleting,
                     modifier =
                         Modifier.weight(1f)
                 ) {
 
                     if (isDeleting) {
+
                         CircularProgressIndicator()
+
                     } else {
+
                         Text("Obriši")
                     }
                 }
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            OutlinedButton(
+                onClick =
+                    onEquipment,
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Text(
+                    "Upravljaj opremom"
+                )
             }
         }
     }
