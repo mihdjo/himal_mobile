@@ -4,12 +4,14 @@ import com.himal.mobile.data.remote.dto.EkspedicijaResponse
 import com.himal.mobile.data.remote.dto.LoginRequest
 import com.himal.mobile.data.remote.dto.LoginResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
+import com.himal.mobile.data.remote.dto.MojPlanResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.DELETE
 
 interface HimalApiService {
 
@@ -34,4 +36,39 @@ interface HimalApiService {
         @Path("id") id: Long,
         @Header("Authorization") authorization: String
     ): Response<List<EkspedicijaOpremaResponse>>
+
+    @GET("api/users/me/saved-expeditions")
+    suspend fun getSavedExpeditions(
+        @Header("Authorization") authorization: String
+    ): Response<List<EkspedicijaResponse>>
+
+    @POST("api/expeditions/{id}/save")
+    suspend fun saveExpedition(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
+
+    @DELETE("api/expeditions/{id}/save")
+    suspend fun removeSavedExpedition(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
+
+
+    @GET("api/users/me/plan")
+    suspend fun getMyPlan(
+        @Header("Authorization") authorization: String
+    ): Response<List<MojPlanResponse>>
+
+    @POST("api/users/me/plan/{id}")
+    suspend fun addToPlan(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
+
+    @DELETE("api/users/me/plan/{id}")
+    suspend fun removeFromPlan(
+        @Path("id") id: Long,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
 }

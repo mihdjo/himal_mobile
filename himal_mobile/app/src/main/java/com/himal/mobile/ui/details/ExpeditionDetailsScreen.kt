@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Row
 
 @Composable
 fun ExpeditionDetailsScreen(
@@ -179,6 +180,70 @@ fun ExpeditionDetailsScreen(
                                 )
                             }
                         }
+                    }
+                }
+
+                item {
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        Button(
+                            onClick = viewModel::toggleSaved,
+                            enabled = !state.isSavedLoading,
+                            modifier = Modifier.weight(1f)
+                        ) {
+
+                            if (state.isSavedLoading) {
+
+                                CircularProgressIndicator()
+
+                            } else {
+
+                                Text(
+                                    if (state.isSaved)
+                                        "♥ Sačuvano"
+                                    else
+                                        "♡ Sačuvaj"
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = viewModel::togglePlan,
+                            enabled = !state.isPlanLoading,
+                            modifier = Modifier.weight(1f)
+                        ) {
+
+                            if (state.isPlanLoading) {
+
+                                CircularProgressIndicator()
+
+                            } else {
+
+                                Text(
+                                    if (state.isInPlan)
+                                        "✓ U planu"
+                                    else
+                                        "+ Moj plan"
+                                )
+                            }
+                        }
+                    }
+                }
+
+                state.actionErrorMessage?.let { error ->
+
+                    item {
+
+                        Text(
+                            text = error,
+                            color =
+                                MaterialTheme.colorScheme.error
+                        )
                     }
                 }
 
