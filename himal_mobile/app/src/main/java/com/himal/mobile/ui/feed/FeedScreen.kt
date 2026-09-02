@@ -29,7 +29,8 @@ import androidx.compose.foundation.clickable
 fun FeedScreen(
     viewModel: FeedViewModel,
     onLogout: () -> Unit,
-    onExpeditionClick: (Long) -> Unit
+    onExpeditionClick: (Long) -> Unit,
+    onMyExpeditionsClick: () -> Unit
 ) {
 
     val state by viewModel.uiState.collectAsState()
@@ -114,6 +115,15 @@ fun FeedScreen(
                             end = 16.dp
                         )
                 )
+
+                Button(
+                    onClick = onMyExpeditionsClick,
+                    modifier = Modifier.padding(
+                        horizontal = 16.dp
+                    )
+                ) {
+                    Text("Moje ekspedicije")
+                }
 
                 Button(
                     onClick = onLogout,
