@@ -257,9 +257,14 @@ class PackingListViewModel(
                     }
                     ?: continue
 
+            val requiredEquipment =
+                group.oprema.filter { equipment ->
+                    equipment.obavezna
+                }
+
             val ready =
                 group.oprema.isNotEmpty() &&
-                        group.oprema.all { equipment ->
+                        requiredEquipment.all { equipment ->
 
                             checklistKey(
                                 expeditionId,
@@ -267,8 +272,6 @@ class PackingListViewModel(
                             ) in preparedItems
                         }
 
-            // Ako backend već ima ispravno stanje,
-            // nema potrebe da šaljemo PUT.
             if (group.status == ready) {
                 continue
             }
