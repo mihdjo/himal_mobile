@@ -2,6 +2,7 @@ package com.himal.mobile.ui.feed
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,16 +13,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Hiking
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,10 +44,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.himal.mobile.data.remote.dto.EkspedicijaResponse
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel,
@@ -60,13 +73,22 @@ fun FeedScreen(
         }
     }
 
-    if (state.isLoading) {
+    /*
+     * Veliki spinner koristimo samo prilikom
+     * inicijalnog učitavanja Feed-a.
+     */
+    if (
+        state.isLoading &&
+        state.expeditions.isEmpty()
+    ) {
 
         Column(
             modifier =
                 Modifier.fillMaxSize(),
+
             verticalArrangement =
                 Arrangement.Center,
+
             horizontalAlignment =
                 Alignment.CenterHorizontally
         ) {
@@ -77,188 +99,313 @@ fun FeedScreen(
         return
     }
 
-    LazyColumn(
+    /*
+     * Box nam omogućava da FAB lebdi
+     * iznad LazyColumn sadržaja.
+     */
+    Box(
         modifier =
-            Modifier.fillMaxSize(),
-
-        contentPadding =
-            PaddingValues(16.dp),
-
-        verticalArrangement =
-            Arrangement.spacedBy(12.dp)
+            Modifier.fillMaxSize()
     ) {
 
-        /*
-         * HEADER
-         */
-        item {
+        LazyColumn(
+            modifier =
+                Modifier.fillMaxSize(),
 
-            Text(
-                text = "HIMAL Expeditions",
-                style =
-                    MaterialTheme
-                        .typography
-                        .headlineMedium
-            )
+            contentPadding =
+                PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 20.dp,
 
-            Spacer(
-                modifier =
-                    Modifier.height(12.dp)
-            )
+                    /*
+                     * Dodatni prostor na dnu da FAB
+                     * ne prekrije poslednju karticu.
+                     */
+                    bottom = 110.dp
+                ),
 
-            Button(
-                onClick =
-                    onMyExpeditionsClick,
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
+            verticalArrangement =
+                Arrangement.spacedBy(
+                    14.dp
+                )
+        ) {
 
-                Text("Moje ekspedicije")
-            }
-
-            Spacer(
-                modifier =
-                    Modifier.height(8.dp)
-            )
-        }
-
-        /*
-         * SEARCH
-         */
-        item {
-
-            SearchSection(
-                state = state,
-                viewModel = viewModel
-            )
-        }
-
-        /*
-         * FILTERS
-         */
-        if (state.showFilters) {
-
+            /*
+             * HIMAL HEADER
+             */
             item {
 
-                FilterSection(
+                FeedHeader()
+            }
+
+            /*
+             * SEARCH
+             */
+            item {
+
+                SearchSection(
                     state = state,
                     viewModel = viewModel
                 )
             }
-        }
 
-        /*
-         * ERROR / VALIDATION MESSAGE
-         */
-        state.errorMessage?.let { message ->
+            /*
+             * FILTERS
+             */
+            if (state.showFilters) {
 
-            item {
+                item {
 
-                Card(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                ) {
+                    FilterSection(
+                        state = state,
+                        viewModel = viewModel
+                    )
+                }
+            }
 
-                    Text(
-                        text = message,
+            /*
+             * FILTERING PROGRESS
+             */
+            if (state.isLoading) {
+
+                item {
+
+                    LinearProgressIndicator(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            /*
+             * ERROR / VALIDATION
+             */
+            state.errorMessage?.let { message ->
+
+                item {
+
+                    Surface(
+                        modifier =
+                            Modifier.fillMaxWidth(),
+
+                        shape =
+                            RoundedCornerShape(
+                                12.dp
+                            ),
+
                         color =
                             MaterialTheme
                                 .colorScheme
-                                .error,
+                                .errorContainer
+                    ) {
+
+                        Text(
+                            text = message,
+
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .onErrorContainer,
+
+                            modifier =
+                                Modifier.padding(
+                                    14.dp
+                                )
+                        )
+                    }
+                }
+            }
+
+            /*
+             * RESULTS HEADER
+             */
+            if (
+                state.expeditions.isNotEmpty()
+            ) {
+
+                item {
+
+                    Row(
                         modifier =
-                            Modifier.padding(16.dp)
+                            Modifier.fillMaxWidth(),
+
+                        horizontalArrangement =
+                            Arrangement.SpaceBetween,
+
+                        verticalAlignment =
+                            Alignment.CenterVertically
+                    ) {
+
+                        Text(
+                            text =
+                                "Ekspedicije",
+
+                            style =
+                                MaterialTheme
+                                    .typography
+                                    .titleLarge
+                        )
+
+                        Text(
+                            text =
+                                "${state.expeditions.size} rezultata",
+
+                            style =
+                                MaterialTheme
+                                    .typography
+                                    .bodySmall,
+
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            /*
+             * EMPTY STATE
+             */
+            if (
+                !state.isLoading &&
+                state.expeditions.isEmpty()
+            ) {
+
+                item {
+
+                    EmptyFeedState(
+                        hasFilters =
+                            hasActiveFilters(
+                                state
+                            ),
+
+                        onClear =
+                            viewModel::clearFilters
+                    )
+                }
+
+            } else {
+
+                /*
+                 * EXPEDITION CARDS
+                 */
+                items(
+                    items =
+                        state.expeditions,
+
+                    key = {
+                        it.idEkspedicije
+                    }
+                ) { expedition ->
+
+                    ExpeditionCard(
+                        expedition =
+                            expedition,
+
+                        onClick = {
+
+                            onExpeditionClick(
+                                expedition
+                                    .idEkspedicije
+                            )
+                        }
                     )
                 }
             }
         }
 
         /*
-         * EMPTY RESULT
+         * FLOATING ACTION BUTTON
          */
-        if (
-            state.expeditions.isEmpty()
-        ) {
+        ExtendedFloatingActionButton(
+            onClick =
+                onMyExpeditionsClick,
 
-            item {
+            icon = {
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            vertical = 32.dp
-                        ),
-                    horizontalAlignment =
-                        Alignment.CenterHorizontally
-                ) {
+                Icon(
+                    imageVector =
+                        Icons.Filled.Hiking,
 
-                    Text(
-                        text =
-                            if (
-                                state.search.isNotBlank() ||
-                                state.location.isNotBlank() ||
-                                state.difficulty != null ||
-                                state.selectedTypeId != null ||
-                                state.maxDuration.isNotBlank() ||
-                                state.maxDistance.isNotBlank()
-                            ) {
-                                "Nema ekspedicija koje odgovaraju pretrazi."
-                            } else {
-                                "Trenutno nema dostupnih ekspedicija."
-                            }
-                    )
-
-                    Spacer(
-                        modifier =
-                            Modifier.height(12.dp)
-                    )
-
-                    OutlinedButton(
-                        onClick =
-                            viewModel::clearFilters
-                    ) {
-
-                        Text(
-                            "Prikaži sve ekspedicije"
-                        )
-                    }
-                }
-            }
-
-        } else {
-
-            /*
-             * EXPEDITION RESULTS
-             */
-            items(
-                items =
-                    state.expeditions,
-
-                key = {
-                    it.idEkspedicije
-                }
-            ) { expedition ->
-
-                ExpeditionCard(
-                    expedition =
-                        expedition,
-
-                    onClick = {
-
-                        onExpeditionClick(
-                            expedition.idEkspedicije
-                        )
-                    }
+                    contentDescription =
+                        null
                 )
-            }
-        }
+            },
 
-        item {
+            text = {
 
-            Spacer(
-                modifier =
-                    Modifier.height(16.dp)
-            )
-        }
+                Text(
+                    text =
+                        "Moje ekspedicije"
+                )
+            },
+
+            modifier =
+                Modifier
+                    .align(
+                        Alignment.BottomEnd
+                    )
+                    .padding(
+                        end = 20.dp,
+                        bottom = 20.dp
+                    ),
+
+            containerColor =
+                MaterialTheme
+                    .colorScheme
+                    .primary,
+
+            contentColor =
+                MaterialTheme
+                    .colorScheme
+                    .onPrimary
+        )
+    }
+}
+
+@Composable
+private fun FeedHeader() {
+
+    Column {
+
+        Text(
+            text =
+                "HIMAL",
+
+            style =
+                MaterialTheme
+                    .typography
+                    .headlineLarge,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .primary
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(
+                    2.dp
+                )
+        )
+
+        Text(
+            text =
+                "Pronađi sledeću avanturu.",
+
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyLarge,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
+        )
     }
 }
 
@@ -270,26 +417,28 @@ private fun SearchSection(
 
     Card(
         modifier =
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                18.dp
+            ),
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme
+                        .colorScheme
+                        .surface
+            )
     ) {
 
         Column(
             modifier =
-                Modifier.padding(16.dp)
+                Modifier.padding(
+                    16.dp
+                )
         ) {
-
-            Text(
-                text = "Pretraga",
-                style =
-                    MaterialTheme
-                        .typography
-                        .titleLarge
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(12.dp)
-            )
 
             OutlinedTextField(
                 value =
@@ -299,20 +448,47 @@ private fun SearchSection(
                     viewModel::onSearchChange,
 
                 label = {
+
+                    Text(
+                        "Pretraži ekspedicije"
+                    )
+                },
+
+                placeholder = {
+
                     Text(
                         "Naziv ili opis"
+                    )
+                },
+
+                leadingIcon = {
+
+                    Icon(
+                        imageVector =
+                            Icons.Filled.Search,
+
+                        contentDescription =
+                            null
                     )
                 },
 
                 modifier =
                     Modifier.fillMaxWidth(),
 
-                singleLine = true
+                singleLine =
+                    true,
+
+                shape =
+                    RoundedCornerShape(
+                        14.dp
+                    )
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             Row(
@@ -330,10 +506,14 @@ private fun SearchSection(
                         viewModel::applyFilters,
 
                     modifier =
-                        Modifier.weight(1f)
+                        Modifier.weight(
+                            1f
+                        )
                 ) {
 
-                    Text("Pretraži")
+                    Text(
+                        "Pretraži"
+                    )
                 }
 
                 OutlinedButton(
@@ -341,17 +521,20 @@ private fun SearchSection(
                         viewModel::toggleFilters,
 
                     modifier =
-                        Modifier.weight(1f)
+                        Modifier.weight(
+                            1f
+                        )
                 ) {
 
                     Text(
-                        if (
-                            state.showFilters
-                        ) {
-                            "Sakrij filtere"
-                        } else {
-                            "Filteri"
-                        }
+                        text =
+                            if (
+                                state.showFilters
+                            ) {
+                                "Sakrij filtere"
+                            } else {
+                                "Filteri"
+                            }
                     )
                 }
             }
@@ -359,7 +542,9 @@ private fun SearchSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class
+)
 @Composable
 private fun FilterSection(
     state: FeedUiState,
@@ -368,42 +553,67 @@ private fun FilterSection(
 
     var difficultyExpanded by
     remember {
-        mutableStateOf(false)
+        mutableStateOf(
+            false
+        )
     }
 
     var typeExpanded by
     remember {
-        mutableStateOf(false)
+        mutableStateOf(
+            false
+        )
     }
 
     val selectedType =
         state.expeditionTypes
             .firstOrNull {
+
                 it.idTipEkspedicije ==
                         state.selectedTypeId
             }
 
-    Card(
+    ElevatedCard(
         modifier =
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                18.dp
+            ),
+
+        colors =
+            CardDefaults
+                .elevatedCardColors(
+                    containerColor =
+                        MaterialTheme
+                            .colorScheme
+                            .surface
+                )
     ) {
 
         Column(
             modifier =
-                Modifier.padding(16.dp)
+                Modifier.padding(
+                    16.dp
+                )
         ) {
 
             Text(
-                text = "Filteri",
+                text =
+                    "Filtriraj ekspedicije",
+
                 style =
                     MaterialTheme
                         .typography
-                        .titleLarge
+                        .titleMedium
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        16.dp
+                    )
             )
 
             /*
@@ -417,18 +627,29 @@ private fun FilterSection(
                     viewModel::onLocationChange,
 
                 label = {
-                    Text("Lokacija")
+
+                    Text(
+                        "Lokacija"
+                    )
                 },
 
                 modifier =
                     Modifier.fillMaxWidth(),
 
-                singleLine = true
+                singleLine =
+                    true,
+
+                shape =
+                    RoundedCornerShape(
+                        14.dp
+                    )
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             /*
@@ -447,15 +668,20 @@ private fun FilterSection(
 
                 OutlinedTextField(
                     value =
-                        state.difficulty
-                            ?: "Sve",
+                        difficultyLabel(
+                            state.difficulty
+                        ),
 
                     onValueChange = {},
 
-                    readOnly = true,
+                    readOnly =
+                        true,
 
                     label = {
-                        Text("Težina")
+
+                        Text(
+                            "Težina"
+                        )
                     },
 
                     trailingIcon = {
@@ -467,9 +693,15 @@ private fun FilterSection(
                             )
                     },
 
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+                    modifier =
+                        Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+
+                    shape =
+                        RoundedCornerShape(
+                            14.dp
+                        )
                 )
 
                 ExposedDropdownMenu(
@@ -485,7 +717,10 @@ private fun FilterSection(
 
                     DropdownMenuItem(
                         text = {
-                            Text("Sve")
+
+                            Text(
+                                "Sve"
+                            )
                         },
 
                         onClick = {
@@ -500,43 +735,77 @@ private fun FilterSection(
                         }
                     )
 
-                    listOf(
-                        "EASY",
-                        "MEDIUM",
-                        "HARD"
-                    ).forEach {
-                            difficulty ->
+                    DropdownMenuItem(
+                        text = {
 
-                        DropdownMenuItem(
-                            text = {
+                            Text(
+                                "Laka"
+                            )
+                        },
 
-                                Text(
-                                    difficulty
+                        onClick = {
+
+                            viewModel
+                                .onDifficultySelected(
+                                    "EASY"
                                 )
-                            },
 
-                            onClick = {
+                            difficultyExpanded =
+                                false
+                        }
+                    )
 
-                                viewModel
-                                    .onDifficultySelected(
-                                        difficulty
-                                    )
+                    DropdownMenuItem(
+                        text = {
 
-                                difficultyExpanded =
-                                    false
-                            }
-                        )
-                    }
+                            Text(
+                                "Srednja"
+                            )
+                        },
+
+                        onClick = {
+
+                            viewModel
+                                .onDifficultySelected(
+                                    "MEDIUM"
+                                )
+
+                            difficultyExpanded =
+                                false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = {
+
+                            Text(
+                                "Teška"
+                            )
+                        },
+
+                        onClick = {
+
+                            viewModel
+                                .onDifficultySelected(
+                                    "HARD"
+                                )
+
+                            difficultyExpanded =
+                                false
+                        }
+                    )
                 }
             }
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             /*
-             * EXPEDITION TYPE
+             * TYPE
              */
             ExposedDropdownMenuBox(
                 expanded =
@@ -556,7 +825,8 @@ private fun FilterSection(
 
                     onValueChange = {},
 
-                    readOnly = true,
+                    readOnly =
+                        true,
 
                     label = {
 
@@ -574,9 +844,15 @@ private fun FilterSection(
                             )
                     },
 
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+                    modifier =
+                        Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+
+                    shape =
+                        RoundedCornerShape(
+                            14.dp
+                        )
                 )
 
                 ExposedDropdownMenu(
@@ -593,7 +869,9 @@ private fun FilterSection(
                     DropdownMenuItem(
                         text = {
 
-                            Text("Sve")
+                            Text(
+                                "Sve"
+                            )
                         },
 
                         onClick = {
@@ -623,7 +901,8 @@ private fun FilterSection(
 
                                     viewModel
                                         .onTypeSelected(
-                                            type.idTipEkspedicije
+                                            type
+                                                .idTipEkspedicije
                                         )
 
                                     typeExpanded =
@@ -636,7 +915,9 @@ private fun FilterSection(
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             /*
@@ -657,15 +938,29 @@ private fun FilterSection(
                     )
                 },
 
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType =
+                            KeyboardType.Number
+                    ),
+
                 modifier =
                     Modifier.fillMaxWidth(),
 
-                singleLine = true
+                singleLine =
+                    true,
+
+                shape =
+                    RoundedCornerShape(
+                        14.dp
+                    )
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             /*
@@ -686,15 +981,29 @@ private fun FilterSection(
                     )
                 },
 
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType =
+                            KeyboardType.Decimal
+                    ),
+
                 modifier =
                     Modifier.fillMaxWidth(),
 
-                singleLine = true
+                singleLine =
+                    true,
+
+                shape =
+                    RoundedCornerShape(
+                        14.dp
+                    )
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(16.dp)
+                    Modifier.height(
+                        16.dp
+                    )
             )
 
             /*
@@ -715,10 +1024,14 @@ private fun FilterSection(
                         viewModel::clearFilters,
 
                     modifier =
-                        Modifier.weight(1f)
+                        Modifier.weight(
+                            1f
+                        )
                 ) {
 
-                    Text("Očisti")
+                    Text(
+                        "Očisti"
+                    )
                 }
 
                 Button(
@@ -726,10 +1039,14 @@ private fun FilterSection(
                         viewModel::applyFilters,
 
                     modifier =
-                        Modifier.weight(1f)
+                        Modifier.weight(
+                            1f
+                        )
                 ) {
 
-                    Text("Primeni")
+                    Text(
+                        "Primeni"
+                    )
                 }
             }
         }
@@ -738,71 +1055,230 @@ private fun FilterSection(
 
 @Composable
 private fun ExpeditionCard(
-    expedition: EkspedicijaResponse,
+    expedition:
+    EkspedicijaResponse,
+
     onClick: () -> Unit
 ) {
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                onClick = onClick
-            )
+    ElevatedCard(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick =
+                        onClick
+                ),
+
+        shape =
+            RoundedCornerShape(
+                18.dp
+            ),
+
+        colors =
+            CardDefaults
+                .elevatedCardColors(
+                    containerColor =
+                        MaterialTheme
+                            .colorScheme
+                            .surface
+                )
     ) {
 
         Column(
             modifier =
-                Modifier.padding(16.dp)
+                Modifier.padding(
+                    18.dp
+                )
         ) {
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
+
+                verticalAlignment =
+                    Alignment.Top
+            ) {
+
+                Text(
+                    text =
+                        expedition.naziv,
+
+                    style =
+                        MaterialTheme
+                            .typography
+                            .titleLarge,
+
+                    modifier =
+                        Modifier.weight(
+                            1f
+                        )
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.padding(
+                            horizontal =
+                                4.dp
+                        )
+                )
+
+                DifficultyBadge(
+                    difficulty =
+                        expedition.tezina
+                )
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        6.dp
+                    )
+            )
 
             Text(
                 text =
-                    expedition.naziv,
+                    expedition.lokacija,
 
                 style =
                     MaterialTheme
                         .typography
-                        .titleLarge
+                        .bodyMedium,
+
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .primary
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(8.dp)
+                    Modifier.height(
+                        10.dp
+                    )
             )
 
             Text(
                 text =
-                    expedition.lokacija
+                    expedition.opis,
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .bodyMedium,
+
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .onSurfaceVariant,
+
+                maxLines =
+                    2,
+
+                overflow =
+                    TextOverflow.Ellipsis
             )
 
             Spacer(
                 modifier =
-                    Modifier.height(4.dp)
+                    Modifier.height(
+                        14.dp
+                    )
             )
 
-            Text(
-                text =
-                    "Težina: ${expedition.tezina}"
-            )
+            /*
+             * TYPE CHIP
+             */
+            Surface(
+                shape =
+                    RoundedCornerShape(
+                        50.dp
+                    ),
 
-            Text(
-                text =
-                    "Tip: ${expedition.tipEkspedicije}"
-            )
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .secondaryContainer
+            ) {
 
-            Text(
-                text =
-                    "Trajanje: ${expedition.trajanjeMin} min"
-            )
+                Text(
+                    text =
+                        expedition
+                            .tipEkspedicije,
 
-            Text(
-                text =
-                    "Dužina: ${expedition.duzinaKm} km"
-            )
+                    style =
+                        MaterialTheme
+                            .typography
+                            .labelMedium,
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSecondaryContainer,
+
+                    modifier =
+                        Modifier.padding(
+                            horizontal =
+                                10.dp,
+
+                            vertical =
+                                5.dp
+                        )
+                )
+            }
 
             Spacer(
                 modifier =
-                    Modifier.height(8.dp)
+                    Modifier.height(
+                        14.dp
+                    )
+            )
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.spacedBy(
+                        8.dp
+                    )
+            ) {
+
+                MetricBox(
+                    label =
+                        "Dužina",
+
+                    value =
+                        "${expedition.duzinaKm} km",
+
+                    modifier =
+                        Modifier.weight(
+                            1f
+                        )
+                )
+
+                MetricBox(
+                    label =
+                        "Trajanje",
+
+                    value =
+                        "${expedition.trajanjeMin} min",
+
+                    modifier =
+                        Modifier.weight(
+                            1f
+                        )
+                )
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        12.dp
+                    )
             )
 
             Text(
@@ -812,8 +1288,271 @@ private fun ExpeditionCard(
                 style =
                     MaterialTheme
                         .typography
-                        .bodySmall
+                        .bodySmall,
+
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .onSurfaceVariant
             )
         }
     }
+}
+
+@Composable
+private fun DifficultyBadge(
+    difficulty: String
+) {
+
+    val containerColor =
+        when (difficulty) {
+
+            "EASY" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .primaryContainer
+
+            "MEDIUM" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .secondaryContainer
+
+            "HARD" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .errorContainer
+
+            else ->
+
+                MaterialTheme
+                    .colorScheme
+                    .surfaceVariant
+        }
+
+    val contentColor =
+        when (difficulty) {
+
+            "EASY" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .onPrimaryContainer
+
+            "MEDIUM" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .onSecondaryContainer
+
+            "HARD" ->
+
+                MaterialTheme
+                    .colorScheme
+                    .onErrorContainer
+
+            else ->
+
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
+        }
+
+    Surface(
+        color =
+            containerColor,
+
+        shape =
+            RoundedCornerShape(
+                50.dp
+            )
+    ) {
+
+        Text(
+            text =
+                difficultyLabel(
+                    difficulty
+                ),
+
+            style =
+                MaterialTheme
+                    .typography
+                    .labelMedium,
+
+            color =
+                contentColor,
+
+            modifier =
+                Modifier.padding(
+                    horizontal =
+                        10.dp,
+
+                    vertical =
+                        5.dp
+                )
+        )
+    }
+}
+
+@Composable
+private fun MetricBox(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+
+    Surface(
+        modifier =
+            modifier,
+
+        shape =
+            RoundedCornerShape(
+                12.dp
+            ),
+
+        color =
+            MaterialTheme
+                .colorScheme
+                .surfaceVariant
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(
+                    horizontal =
+                        12.dp,
+
+                    vertical =
+                        9.dp
+                )
+        ) {
+
+            Text(
+                text =
+                    label,
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .bodySmall,
+
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .onSurfaceVariant
+            )
+
+            Text(
+                text =
+                    value,
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .labelLarge,
+
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyFeedState(
+    hasFilters: Boolean,
+    onClear: () -> Unit
+) {
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical =
+                        40.dp
+                ),
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text =
+                if (hasFilters) {
+
+                    "Nema ekspedicija koje odgovaraju filterima."
+
+                } else {
+
+                    "Trenutno nema dostupnih ekspedicija."
+                },
+
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyLarge,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
+        )
+
+        if (hasFilters) {
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        12.dp
+                    )
+            )
+
+            OutlinedButton(
+                onClick =
+                    onClear
+            ) {
+
+                Text(
+                    "Prikaži sve"
+                )
+            }
+        }
+    }
+}
+
+private fun difficultyLabel(
+    difficulty: String?
+): String {
+
+    return when (difficulty) {
+
+        "EASY" ->
+            "Laka"
+
+        "MEDIUM" ->
+            "Srednja"
+
+        "HARD" ->
+            "Teška"
+
+        else ->
+            "Sve"
+    }
+}
+
+private fun hasActiveFilters(
+    state: FeedUiState
+): Boolean {
+
+    return state.search.isNotBlank() ||
+            state.location.isNotBlank() ||
+            state.difficulty != null ||
+            state.selectedTypeId != null ||
+            state.maxDuration.isNotBlank() ||
+            state.maxDistance.isNotBlank()
 }

@@ -9,13 +9,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,11 +37,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.himal.mobile.data.local.checklistKey
 import com.himal.mobile.data.remote.dto.AgregiranaOpremaResponse
 import com.himal.mobile.data.remote.dto.EkspedicijaOpremaResponse
 import com.himal.mobile.data.remote.dto.GrupisanaOpremaResponse
-import androidx.compose.material3.Checkbox
-import com.himal.mobile.data.local.checklistKey
 
 @Composable
 fun PackingListScreen(
@@ -36,13 +48,16 @@ fun PackingListScreen(
     onSessionExpired: () -> Unit
 ) {
 
-    val state by viewModel.uiState.collectAsState()
+    val state by
+    viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadPackingList()
     }
 
-    LaunchedEffect(state.sessionExpired) {
+    LaunchedEffect(
+        state.sessionExpired
+    ) {
 
         if (state.sessionExpired) {
             onSessionExpired()
@@ -53,111 +68,384 @@ fun PackingListScreen(
 
         state.isLoading -> {
 
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement =
-                    Arrangement.Center,
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator()
-            }
+            PackingLoading()
         }
 
         state.errorMessage != null -> {
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement =
-                    Arrangement.Center,
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
+            PackingError(
+                message =
+                    state.errorMessage
+                        ?: "Nepoznata greška.",
 
-                Text(
-                    text =
-                        state.errorMessage
-                            ?: "Nepoznata greška.",
-                    color =
-                        MaterialTheme.colorScheme.error
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
-
-                Button(
-                    onClick =
-                        viewModel::loadPackingList
-                ) {
-                    Text("Pokušaj ponovo")
-                }
-            }
+                onRetry =
+                    viewModel::loadPackingList
+            )
         }
 
         else -> {
 
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier =
+                    Modifier.fillMaxSize()
             ) {
 
-                Text(
-                    text = "Packing lista",
-                    style =
-                        MaterialTheme.typography.headlineMedium,
+                Column(
                     modifier =
-                        Modifier.padding(16.dp)
-                )
+                        Modifier.padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 20.dp
+                        )
+                ) {
 
-                PackingModeSelector(
-                    selectedMode = state.viewMode,
-                    onAllClick = viewModel::showAll,
-                    onGroupedClick =
-                        viewModel::showGrouped
-                )
+                    PackingHeader()
 
-                state.checklistErrorMessage?.let { error ->
-
-                    Text(
-                        text = error,
-                        color =
-                            MaterialTheme.colorScheme.error,
+                    Spacer(
                         modifier =
-                            Modifier.padding(
-                                horizontal = 16.dp
+                            Modifier.height(
+                                16.dp
                             )
                     )
+
+                    PackingSummary(
+                        groups =
+                            state.grouped,
+
+                        preparedItems =
+                            state.preparedItems
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                14.dp
+                            )
+                    )
+
+                    PackingModeSelector(
+                        selectedMode =
+                            state.viewMode,
+
+                        onAllClick =
+                            viewModel::showAll,
+
+                        onGroupedClick =
+                            viewModel::showGrouped
+                    )
+
+                    state.checklistErrorMessage
+                        ?.let { error ->
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(
+                                        10.dp
+                                    )
+                            )
+
+                            PackingErrorMessage(
+                                message =
+                                    error
+                            )
+                        }
                 }
 
-                when (state.viewMode) {
+                Spacer(
+                    modifier =
+                        Modifier.height(
+                            6.dp
+                        )
+                )
+
+                when (
+                    state.viewMode
+                ) {
 
                     PackingViewMode.ALL -> {
 
                         AggregatedPackingList(
-                            items = state.aggregated,
-                            groups = state.grouped,
+                            items =
+                                state.aggregated,
+
+                            groups =
+                                state.grouped,
+
                             preparedItems =
                                 state.preparedItems,
+
                             onCheckedChange =
-                                viewModel::toggleAggregatedEquipment
+                                viewModel::
+                                toggleAggregatedEquipment,
+
+                            modifier =
+                                Modifier.weight(
+                                    1f
+                                )
                         )
                     }
 
                     PackingViewMode.GROUPED -> {
 
                         GroupedPackingList(
-                            groups = state.grouped,
+                            groups =
+                                state.grouped,
+
                             preparedItems =
                                 state.preparedItems,
+
                             onCheckedChange =
-                                viewModel::toggleEquipment
+                                viewModel::
+                                toggleEquipment,
+
+                            modifier =
+                                Modifier.weight(
+                                    1f
+                                )
                         )
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PackingHeader() {
+
+    Column {
+
+        Text(
+            text =
+                "Packing lista",
+
+            style =
+                MaterialTheme
+                    .typography
+                    .headlineLarge,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .primary
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(
+                    2.dp
+                )
+        )
+
+        Text(
+            text =
+                "Pripremi opremu za sve ekspedicije u planu.",
+
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyLarge,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun PackingSummary(
+    groups: List<GrupisanaOpremaResponse>,
+    preparedItems: Set<String>
+) {
+
+    val requiredTotal =
+        groups.sumOf { group ->
+
+            group.oprema.count {
+                it.obavezna
+            }
+        }
+
+    val preparedRequired =
+        groups.sumOf { group ->
+
+            group.oprema.count { equipment ->
+
+                equipment.obavezna &&
+                        checklistKey(
+                            group.idEkspedicije,
+                            equipment.idOpreme
+                        ) in preparedItems
+            }
+        }
+
+    val readyExpeditions =
+        groups.count {
+            it.status
+        }
+
+    val progress =
+        when {
+
+            requiredTotal > 0 ->
+
+                preparedRequired.toFloat() /
+                        requiredTotal.toFloat()
+
+            groups.isNotEmpty() ->
+
+                1f
+
+            else ->
+
+                0f
+        }
+
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                18.dp
+            ),
+
+        color =
+            if (
+                groups.isNotEmpty() &&
+                readyExpeditions ==
+                groups.size
+            ) {
+
+                MaterialTheme
+                    .colorScheme
+                    .primaryContainer
+
+            } else {
+
+                MaterialTheme
+                    .colorScheme
+                    .surfaceVariant
+            }
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(
+                    18.dp
+                )
+        ) {
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
+
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+
+                Column {
+
+                    Text(
+                        text =
+                            "Spremnost opreme",
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleMedium
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                2.dp
+                            )
+                    )
+
+                    Text(
+                        text =
+                            if (
+                                requiredTotal > 0
+                            ) {
+
+                                "$preparedRequired od $requiredTotal obaveznih stavki"
+
+                            } else {
+
+                                "Nema obavezne opreme"
+                            },
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .bodySmall,
+
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
+                }
+
+                Surface(
+                    shape =
+                        RoundedCornerShape(
+                            50.dp
+                        ),
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .surface
+                ) {
+
+                    Text(
+                        text =
+                            "$readyExpeditions/${groups.size} spremno",
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .labelMedium,
+
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .primary,
+
+                        modifier =
+                            Modifier.padding(
+                                horizontal =
+                                    10.dp,
+
+                                vertical =
+                                    6.dp
+                            )
+                    )
+                }
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        14.dp
+                    )
+            )
+
+            LinearProgressIndicator(
+                progress = {
+                    progress
+                },
+
+                modifier =
+                    Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -170,32 +458,70 @@ private fun PackingModeSelector(
 ) {
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp
-            ),
+        modifier =
+            Modifier.fillMaxWidth(),
+
         horizontalArrangement =
-            Arrangement.spacedBy(8.dp)
+            Arrangement.spacedBy(
+                8.dp
+            )
     ) {
 
-        if (selectedMode == PackingViewMode.ALL) {
+        if (
+            selectedMode ==
+            PackingViewMode.ALL
+        ) {
 
-            Button(
-                onClick = onAllClick,
-                modifier = Modifier.weight(1f)
+            FilledTonalButton(
+                onClick =
+                    onAllClick,
+
+                modifier =
+                    Modifier.weight(
+                        1f
+                    )
             ) {
-                Text("Sva oprema")
+
+                Icon(
+                    imageVector =
+                        Icons.Filled.List,
+
+                    contentDescription =
+                        null,
+
+                    modifier =
+                        Modifier.size(
+                            18.dp
+                        )
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.size(
+                            6.dp
+                        )
+                )
+
+                Text(
+                    "Sva oprema"
+                )
             }
 
         } else {
 
             OutlinedButton(
-                onClick = onAllClick,
-                modifier = Modifier.weight(1f)
+                onClick =
+                    onAllClick,
+
+                modifier =
+                    Modifier.weight(
+                        1f
+                    )
             ) {
-                Text("Sva oprema")
+
+                Text(
+                    "Sva oprema"
+                )
             }
         }
 
@@ -204,20 +530,56 @@ private fun PackingModeSelector(
             PackingViewMode.GROUPED
         ) {
 
-            Button(
-                onClick = onGroupedClick,
-                modifier = Modifier.weight(1f)
+            FilledTonalButton(
+                onClick =
+                    onGroupedClick,
+
+                modifier =
+                    Modifier.weight(
+                        1f
+                    )
             ) {
-                Text("Po ekspedicijama")
+
+                Icon(
+                    imageVector =
+                        Icons.Filled.ViewAgenda,
+
+                    contentDescription =
+                        null,
+
+                    modifier =
+                        Modifier.size(
+                            18.dp
+                        )
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.size(
+                            6.dp
+                        )
+                )
+
+                Text(
+                    "Po turama"
+                )
             }
 
         } else {
 
             OutlinedButton(
-                onClick = onGroupedClick,
-                modifier = Modifier.weight(1f)
+                onClick =
+                    onGroupedClick,
+
+                modifier =
+                    Modifier.weight(
+                        1f
+                    )
             ) {
-                Text("Po ekspedicijama")
+
+                Text(
+                    "Po turama"
+                )
             }
         }
     }
@@ -228,43 +590,66 @@ private fun AggregatedPackingList(
     items: List<AgregiranaOpremaResponse>,
     groups: List<GrupisanaOpremaResponse>,
     preparedItems: Set<String>,
-    onCheckedChange: (Long, Boolean) -> Unit
+    onCheckedChange: (
+        Long,
+        Boolean
+    ) -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
-    if (items.isEmpty()) {
+    if (
+        items.isEmpty()
+    ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        PackingEmptyState(
+            modifier =
+                modifier,
 
-            Text(
-                text = "Packing lista je prazna."
-            )
+            title =
+                "Packing lista je prazna",
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
-            Text(
-                text = "Dodaj ekspedicije u Moj plan."
-            )
-        }
+            message =
+                "Dodaj ekspedicije u Moj plan kako bi se ovde pojavila potrebna oprema."
+        )
 
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier =
+            modifier,
+
+        contentPadding =
+            PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 10.dp,
+                bottom = 24.dp
+            ),
+
+        verticalArrangement =
+            Arrangement.spacedBy(
+                10.dp
+            )
     ) {
 
+        item {
+
+            Text(
+                text =
+                    "Ukupna oprema",
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .titleLarge
+            )
+        }
+
         items(
-            items = items,
+            items =
+                items,
+
             key = {
                 it.idOpreme
             }
@@ -290,9 +675,14 @@ private fun AggregatedPackingList(
                         }
 
             AggregatedEquipmentCard(
-                equipment = equipment,
-                checked = checked,
-                onCheckedChange = { value ->
+                equipment =
+                    equipment,
+
+                checked =
+                    checked,
+
+                onCheckedChange = {
+                        value ->
 
                     onCheckedChange(
                         equipment.idOpreme,
@@ -306,74 +696,161 @@ private fun AggregatedPackingList(
 
 @Composable
 private fun AggregatedEquipmentCard(
-    equipment: AgregiranaOpremaResponse,
+    equipment:
+    AgregiranaOpremaResponse,
+
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+
+    onCheckedChange:
+        (Boolean) -> Unit
 ) {
 
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    ElevatedCard(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                16.dp
+            ),
+
+        colors =
+            CardDefaults
+                .elevatedCardColors(
+                    containerColor =
+                        if (checked) {
+
+                            MaterialTheme
+                                .colorScheme
+                                .primaryContainer
+
+                        } else {
+
+                            MaterialTheme
+                                .colorScheme
+                                .surface
+                        }
+                )
     ) {
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        14.dp
+                    ),
+
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
 
             Checkbox(
-                checked = checked,
+                checked =
+                    checked,
+
                 onCheckedChange =
                     onCheckedChange
             )
 
+            Spacer(
+                modifier =
+                    Modifier.size(
+                        6.dp
+                    )
+            )
+
             Column(
-                modifier = Modifier.weight(1f)
+                modifier =
+                    Modifier.weight(
+                        1f
+                    )
             ) {
 
-                Text(
-                    text = equipment.naziv,
-                    style =
-                        MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    modifier =
+                        Modifier.fillMaxWidth(),
+
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween,
+
+                    verticalAlignment =
+                        Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text =
+                            equipment.naziv,
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleMedium,
+
+                        modifier =
+                            Modifier.weight(
+                                1f
+                            )
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.size(
+                                8.dp
+                            )
+                    )
+
+                    RequirementBadge(
+                        required =
+                            equipment.obavezna
+                    )
+                }
 
                 Spacer(
                     modifier =
-                        Modifier.height(4.dp)
+                        Modifier.height(
+                            7.dp
+                        )
                 )
 
                 Text(
                     text =
-                        "Ukupna količina: " +
-                                "${equipment.ukupnaKolicina}"
+                        "Ukupna količina: ${equipment.ukupnaKolicina}",
+
+                    style =
+                        MaterialTheme
+                            .typography
+                            .labelLarge
                 )
 
-                Text(
-                    text =
-                        if (equipment.obavezna)
-                            "Obavezna oprema"
-                        else
-                            "Opciona oprema"
-                )
-
-                equipment.opis?.let {
-
-                    if (it.isNotBlank()) {
+                equipment.opis
+                    ?.takeIf {
+                        it.isNotBlank()
+                    }
+                    ?.let { description ->
 
                         Spacer(
                             modifier =
-                                Modifier.height(8.dp)
+                                Modifier.height(
+                                    5.dp
+                                )
                         )
 
                         Text(
-                            text = it,
+                            text =
+                                description,
+
                             style =
-                                MaterialTheme.typography.bodySmall
+                                MaterialTheme
+                                    .typography
+                                    .bodySmall,
+
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .onSurfaceVariant
                         )
                     }
-                }
             }
         }
     }
@@ -381,51 +858,88 @@ private fun AggregatedEquipmentCard(
 
 @Composable
 private fun GroupedPackingList(
-    groups: List<GrupisanaOpremaResponse>,
-    preparedItems: Set<String>,
+    groups:
+    List<GrupisanaOpremaResponse>,
+
+    preparedItems:
+    Set<String>,
+
     onCheckedChange:
-        (Long, Long, Boolean) -> Unit
+        (
+        Long,
+        Long,
+        Boolean
+    ) -> Unit,
+
+    modifier:
+    Modifier = Modifier
 ) {
 
-    if (groups.isEmpty()) {
+    if (
+        groups.isEmpty()
+    ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement =
-                Arrangement.Center,
-            horizontalAlignment =
-                Alignment.CenterHorizontally
-        ) {
+        PackingEmptyState(
+            modifier =
+                modifier,
 
-            Text(
-                "Nema ekspedicija u planu."
-            )
-        }
+            title =
+                "Nema ekspedicija u planu",
+
+            message =
+                "Dodaj ekspediciju u Moj plan da bi priprema opreme mogla da počne."
+        )
 
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier =
+            modifier,
+
         contentPadding =
-            PaddingValues(16.dp),
+            PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 10.dp,
+                bottom = 24.dp
+            ),
+
         verticalArrangement =
-            Arrangement.spacedBy(20.dp)
+            Arrangement.spacedBy(
+                14.dp
+            )
     ) {
 
+        item {
+
+            Text(
+                text =
+                    "Oprema po ekspedicijama",
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .titleLarge
+            )
+        }
+
         items(
-            items = groups,
+            items =
+                groups,
+
             key = {
                 it.idEkspedicije
             }
         ) { group ->
 
             ExpeditionEquipmentGroup(
-                group = group,
+                group =
+                    group,
+
                 preparedItems =
                     preparedItems,
+
                 onCheckedChange =
                     onCheckedChange
             )
@@ -435,146 +949,714 @@ private fun GroupedPackingList(
 
 @Composable
 private fun ExpeditionEquipmentGroup(
-    group: GrupisanaOpremaResponse,
-    preparedItems: Set<String>,
+    group:
+    GrupisanaOpremaResponse,
+
+    preparedItems:
+    Set<String>,
+
     onCheckedChange:
-        (Long, Long, Boolean) -> Unit
+        (
+        Long,
+        Long,
+        Boolean
+    ) -> Unit
 ) {
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    val requiredEquipment =
+        group.oprema.filter {
+            it.obavezna
+        }
+
+    val preparedRequired =
+        requiredEquipment.count {
+                equipment ->
+
+            checklistKey(
+                group.idEkspedicije,
+                equipment.idOpreme
+            ) in preparedItems
+        }
+
+    ElevatedCard(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                18.dp
+            ),
+
+        colors =
+            CardDefaults
+                .elevatedCardColors(
+                    containerColor =
+                        if (
+                            group.status
+                        ) {
+
+                            MaterialTheme
+                                .colorScheme
+                                .primaryContainer
+
+                        } else {
+
+                            MaterialTheme
+                                .colorScheme
+                                .surface
+                        }
+                )
     ) {
 
-        Text(
-            text = group.nazivEkspedicije,
-            style =
-                MaterialTheme.typography.titleLarge
-        )
-
-        Spacer(
+        Column(
             modifier =
-                Modifier.height(4.dp)
-        )
-
-        Text(
-            text =
-                if (group.status)
-                    "✓ Oprema spremna"
-                else
-                    "○ Oprema nije spremna",
-            style =
-                MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(
-            modifier =
-                Modifier.height(8.dp)
-        )
-
-        if (group.oprema.isEmpty()) {
-
-            Text(
-                text =
-                    "Oprema nije definisana."
-            )
-
-        } else {
-
-            group.oprema.forEach { equipment ->
-
-                GroupedEquipmentCard(
-                    equipment = equipment,
-
-                    checked =
-                        checklistKey(
-                            group.idEkspedicije,
-                            equipment.idOpreme
-                        ) in preparedItems,
-
-                    onCheckedChange = { checked ->
-
-                        onCheckedChange(
-                            group.idEkspedicije,
-                            equipment.idOpreme,
-                            checked
-                        )
-                    }
+                Modifier.padding(
+                    16.dp
                 )
+        ) {
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
+
+                verticalAlignment =
+                    Alignment.Top
+            ) {
+
+                Column(
+                    modifier =
+                        Modifier.weight(
+                            1f
+                        )
+                ) {
+
+                    Text(
+                        text =
+                            group.nazivEkspedicije,
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleLarge
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                3.dp
+                            )
+                    )
+
+                    Text(
+                        text =
+                            if (
+                                requiredEquipment.isEmpty()
+                            ) {
+
+                                "Nema obavezne opreme"
+
+                            } else {
+
+                                "$preparedRequired od ${requiredEquipment.size} obaveznih stavki"
+                            },
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .bodySmall,
+
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
+                }
 
                 Spacer(
                     modifier =
-                        Modifier.height(8.dp)
+                        Modifier.size(
+                            8.dp
+                        )
                 )
+
+                GroupStatusBadge(
+                    ready =
+                        group.status
+                )
+            }
+
+            if (
+                group.oprema.isEmpty()
+            ) {
+
+                Spacer(
+                    modifier =
+                        Modifier.height(
+                            12.dp
+                        )
+                )
+
+                Text(
+                    text =
+                        "Oprema nije definisana.",
+
+                    style =
+                        MaterialTheme
+                            .typography
+                            .bodyMedium,
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
+                )
+
+            } else {
+
+                Spacer(
+                    modifier =
+                        Modifier.height(
+                            14.dp
+                        )
+                )
+
+                HorizontalDivider()
+
+                group.oprema
+                    .forEachIndexed {
+                            index,
+                            equipment ->
+
+                        GroupedEquipmentRow(
+                            equipment =
+                                equipment,
+
+                            checked =
+                                checklistKey(
+                                    group.idEkspedicije,
+                                    equipment.idOpreme
+                                ) in preparedItems,
+
+                            onCheckedChange = {
+                                    checked ->
+
+                                onCheckedChange(
+                                    group.idEkspedicije,
+                                    equipment.idOpreme,
+                                    checked
+                                )
+                            }
+                        )
+
+                        if (
+                            index <
+                            group.oprema.lastIndex
+                        ) {
+
+                            HorizontalDivider()
+                        }
+                    }
             }
         }
     }
 }
 
 @Composable
-private fun GroupedEquipmentCard(
-    equipment: EkspedicijaOpremaResponse,
+private fun GroupedEquipmentRow(
+    equipment:
+    EkspedicijaOpremaResponse,
+
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+
+    onCheckedChange:
+        (Boolean) -> Unit
 ) {
 
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical =
+                        10.dp
+                ),
+
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+
+        Checkbox(
+            checked =
+                checked,
+
+            onCheckedChange =
+                onCheckedChange
+        )
+
+        Spacer(
+            modifier =
+                Modifier.size(
+                    6.dp
+                )
+        )
+
+        Column(
+            modifier =
+                Modifier.weight(
+                    1f
+                )
+        ) {
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
+
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+
+                Text(
+                    text =
+                        equipment.naziv,
+
+                    style =
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
+
+                    modifier =
+                        Modifier.weight(
+                            1f
+                        )
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.size(
+                            8.dp
+                        )
+                )
+
+                RequirementBadge(
+                    required =
+                        equipment.obavezna
+                )
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        4.dp
+                    )
+            )
+
+            Text(
+                text =
+                    "Količina: ${equipment.kolicina}",
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .bodyMedium
+            )
+
+            equipment.napomena
+                ?.takeIf {
+                    it.isNotBlank()
+                }
+                ?.let { note ->
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                4.dp
+                            )
+                    )
+
+                    Text(
+                        text =
+                            "Napomena: $note",
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .bodySmall,
+
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
+                }
+        }
+    }
+}
+
+@Composable
+private fun RequirementBadge(
+    required: Boolean
+) {
+
+    Surface(
+        shape =
+            RoundedCornerShape(
+                50.dp
+            ),
+
+        color =
+            if (required) {
+
+                MaterialTheme
+                    .colorScheme
+                    .primaryContainer
+
+            } else {
+
+                MaterialTheme
+                    .colorScheme
+                    .secondaryContainer
+            }
+    ) {
+
+        Text(
+            text =
+                if (required) {
+                    "Obavezna"
+                } else {
+                    "Opciona"
+                },
+
+            style =
+                MaterialTheme
+                    .typography
+                    .labelMedium,
+
+            color =
+                if (required) {
+
+                    MaterialTheme
+                        .colorScheme
+                        .onPrimaryContainer
+
+                } else {
+
+                    MaterialTheme
+                        .colorScheme
+                        .onSecondaryContainer
+                },
+
+            modifier =
+                Modifier.padding(
+                    horizontal =
+                        9.dp,
+
+                    vertical =
+                        4.dp
+                )
+        )
+    }
+}
+
+@Composable
+private fun GroupStatusBadge(
+    ready: Boolean
+) {
+
+    Surface(
+        shape =
+            RoundedCornerShape(
+                50.dp
+            ),
+
+        color =
+            if (ready) {
+
+                MaterialTheme
+                    .colorScheme
+                    .primary
+
+            } else {
+
+                MaterialTheme
+                    .colorScheme
+                    .secondaryContainer
+            }
     ) {
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier =
+                Modifier.padding(
+                    horizontal =
+                        10.dp,
+
+                    vertical =
+                        5.dp
+                ),
+
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
 
-            Checkbox(
-                checked = checked,
-                onCheckedChange =
-                    onCheckedChange
-            )
+            if (ready) {
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+                Icon(
+                    imageVector =
+                        Icons.Filled.CheckCircle,
 
-                Text(
-                    text = equipment.naziv,
-                    style =
-                        MaterialTheme.typography.titleMedium
-                )
+                    contentDescription =
+                        null,
 
-                Text(
-                    text =
-                        "Količina: ${equipment.kolicina}"
-                )
+                    tint =
+                        MaterialTheme
+                            .colorScheme
+                            .onPrimary,
 
-                Text(
-                    text =
-                        if (equipment.obavezna)
-                            "Obavezna"
-                        else
-                            "Opciona"
-                )
-
-                equipment.napomena?.let {
-
-                    if (it.isNotBlank()) {
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(4.dp)
+                    modifier =
+                        Modifier.size(
+                            14.dp
                         )
+                )
 
-                        Text(
-                            text = "Napomena: $it",
-                            style =
-                                MaterialTheme.typography.bodySmall
+                Spacer(
+                    modifier =
+                        Modifier.size(
+                            4.dp
                         )
-                    }
-                }
+                )
             }
+
+            Text(
+                text =
+                    if (ready) {
+                        "Spremna"
+                    } else {
+                        "Priprema"
+                    },
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .labelMedium,
+
+                color =
+                    if (ready) {
+
+                        MaterialTheme
+                            .colorScheme
+                            .onPrimary
+
+                    } else {
+
+                        MaterialTheme
+                            .colorScheme
+                            .onSecondaryContainer
+                    }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PackingErrorMessage(
+    message: String
+) {
+
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                12.dp
+            ),
+
+        color =
+            MaterialTheme
+                .colorScheme
+                .errorContainer
+    ) {
+
+        Text(
+            text =
+                message,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onErrorContainer,
+
+            modifier =
+                Modifier.padding(
+                    12.dp
+                )
+        )
+    }
+}
+
+@Composable
+private fun PackingEmptyState(
+    modifier: Modifier = Modifier,
+    title: String,
+    message: String
+) {
+
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(
+                    32.dp
+                ),
+
+        verticalArrangement =
+            Arrangement.Center,
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Surface(
+            shape =
+                RoundedCornerShape(
+                    50.dp
+                ),
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .primaryContainer
+        ) {
+
+            Icon(
+                imageVector =
+                    Icons.Filled.List,
+
+                contentDescription =
+                    null,
+
+                tint =
+                    MaterialTheme
+                        .colorScheme
+                        .primary,
+
+                modifier =
+                    Modifier.padding(
+                        18.dp
+                    )
+            )
+        }
+
+        Spacer(
+            modifier =
+                Modifier.height(
+                    16.dp
+                )
+        )
+
+        Text(
+            text =
+                title,
+
+            style =
+                MaterialTheme
+                    .typography
+                    .titleLarge
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(
+                    5.dp
+                )
+        )
+
+        Text(
+            text =
+                message,
+
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyMedium,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun PackingLoading() {
+
+    Column(
+        modifier =
+            Modifier.fillMaxSize(),
+
+        verticalArrangement =
+            Arrangement.Center,
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun PackingError(
+    message: String,
+    onRetry: () -> Unit
+) {
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(
+                    24.dp
+                ),
+
+        verticalArrangement =
+            Arrangement.Center,
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text =
+                message,
+
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .error
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(
+                    16.dp
+                )
+        )
+
+        Button(
+            onClick =
+                onRetry
+        ) {
+
+            Text(
+                "Pokušaj ponovo"
+            )
         }
     }
 }

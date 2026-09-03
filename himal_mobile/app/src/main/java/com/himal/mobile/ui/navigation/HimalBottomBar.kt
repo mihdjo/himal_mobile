@@ -1,9 +1,13 @@
 package com.himal.mobile.ui.navigation
 
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun HimalBottomBar(
@@ -11,43 +15,50 @@ fun HimalBottomBar(
     onNavigate: (String) -> Unit
 ) {
 
-    NavigationBar {
+    NavigationBar(
+        containerColor =
+            MaterialTheme.colorScheme.surface,
+        tonalElevation = 4.dp
+    ) {
 
         MainDestination.entries.forEach { destination ->
 
             val isSelected =
                 when {
 
-                    // Expedition details pripada Feed sekciji
                     currentRoute
                         ?.startsWith("details") == true -> {
-
-                        destination == MainDestination.FEED
-                    }
-
-                    // Moje ekspedicije + Create + Edit
-                    // takođe pripadaju Feed sekciji
-                    currentRoute == "my-expeditions" ||
-                            currentRoute == "create-expedition" ||
-                            currentRoute
-                                ?.startsWith("edit-expedition") == true ||
-                            currentRoute
-                                ?.startsWith("manage-equipment") == true -> {
 
                         destination ==
                                 MainDestination.FEED
                     }
 
-                    // Packing lista pripada Moj Plan sekciji
-                    currentRoute == "packing-list" -> {
+                    currentRoute == "my-expeditions" ||
+                            currentRoute == "create-expedition" ||
+                            currentRoute
+                                ?.startsWith(
+                                    "edit-expedition"
+                                ) == true ||
+                            currentRoute
+                                ?.startsWith(
+                                    "manage-equipment"
+                                ) == true -> {
 
-                        destination == MainDestination.PLAN
+                        destination ==
+                                MainDestination.FEED
                     }
 
-                    // Glavne navbar destinacije
+                    currentRoute ==
+                            "packing-list" -> {
+
+                        destination ==
+                                MainDestination.PLAN
+                    }
+
                     else -> {
 
-                        currentRoute == destination.route
+                        currentRoute ==
+                                destination.route
                     }
                 }
 
@@ -61,16 +72,50 @@ fun HimalBottomBar(
                 },
 
                 icon = {
-                    Text(
-                        destination.icon
+
+                    Icon(
+                        imageVector =
+                            destination.icon,
+                        contentDescription =
+                            destination.label
                     )
                 },
 
                 label = {
+
                     Text(
-                        destination.label
+                        text =
+                            destination.label
                     )
-                }
+                },
+
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onPrimaryContainer,
+
+                        selectedTextColor =
+                            MaterialTheme
+                                .colorScheme
+                                .primary,
+
+                        indicatorColor =
+                            MaterialTheme
+                                .colorScheme
+                                .primaryContainer,
+
+                        unselectedIconColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant,
+
+                        unselectedTextColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
             )
         }
     }
