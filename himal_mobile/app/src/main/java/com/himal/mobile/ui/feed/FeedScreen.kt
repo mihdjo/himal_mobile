@@ -120,16 +120,6 @@ fun FeedScreen(
                 modifier =
                     Modifier.height(8.dp)
             )
-
-            OutlinedButton(
-                onClick =
-                    onLogout,
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Text("Odjavi se")
-            }
         }
 
         /*
